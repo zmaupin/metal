@@ -1,0 +1,39 @@
+---
+# See: https://hub.docker.com/r/panubo/sshd
+version: "3"
+services:
+  rexecd:
+    build:
+      dockerfile: docker/builds/rexecd/Dockerfile
+      context: ../
+    networks:
+      - dev
+    ports:
+      - "9000:9000"
+    volumes:
+      - "../:/go/src/github.com/metal-go/metal"
+    environment:
+      - METAL_LOG_LEVEL=debug
+  host01:
+    networks:
+      - dev
+    ports:
+      - "2222:22"
+    image: panubo/sshd
+    volumes:
+      - ~/.ssh/id_rsa.pub:/etc/authorized_keys/dev
+    environment:
+      - SSH_USERS=dev:1001:1001
+  host02:
+    networks:
+      - dev
+    ports:
+      - "4444:22"
+    image: panubo/sshd
+    volumes:
+      - ~/.ssh/id_rsa.pub:/etc/authorized_keys/dev
+    environment:
+      - SSH_USERS=dev:1001:1001
+
+networks:
+  dev:
