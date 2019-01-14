@@ -30,8 +30,8 @@ export interface IMAppBarProps extends WithStyles<typeof styles> {
 const MAppBar = withStyles(styles)((props: IMAppBarProps) => {
   return (
     <div className={props.classes.root}>
-      <AppBar position="static">
-        <Toolbar style={{backgroundColor: props.color ? props.color : '#5A7E8A'}}>
+      <AppBar position="static" style={{backgroundColor: props.color ? props.color : '#5A7E8A'}}>
+        <Toolbar>
           <IconButton className={props.classes.menuButton} color="inherit" aria-label="Menu">
             <MenuIcon />
           </IconButton>
