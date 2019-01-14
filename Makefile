@@ -26,7 +26,7 @@ build_metalmakedocs:
 PACKAGES := ./cmd... ./rexecd... ./util...
 
 app:
-	@cd app; npx webpack
+	@cd app && find dist -type f ! -name "*index.html" -exec rm -rf {} + && npx webpack;
 
 # dev_start starts a given development environment
 #
