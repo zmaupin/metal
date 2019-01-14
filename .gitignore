@@ -1,3 +1,4 @@
 play
 app/node_modules/.cache
 bundle.js
+bundle.js.map
