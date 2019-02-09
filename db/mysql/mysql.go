@@ -12,12 +12,11 @@ import (
 // ExecuteSQL executes each
 func ExecuteSQL(ctx context.Context, db *sql.DB, s string) error {
 	for statement := range statementGenerator(s) {
-		_, err := sqlparser.Parse(statement)
-		if err != nil {
+		if _, err := sqlparser.Parse(statement); err != nil {
 			return err
 		}
-		_, err = db.ExecContext(ctx, statement)
-		if err != nil {
+
+		if _, err := db.ExecContext(ctx, statement); err != nil {
 			return err
 		}
 	}
