@@ -23,7 +23,7 @@ build_metalmakedocs:
 	@go install github.com/metal-go/metal/tools/metalmakedocs
 
 # List of packages to test. Use the elipses to decend into sub packages
-PACKAGES := ./cmd... ./rexecd... ./util...
+PACKAGES := ./db... ./util...
 
 app:
 	@cd app && find dist -type f ! -name "*index.html" -exec rm -rf {} + && npx webpack;

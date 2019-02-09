@@ -74,6 +74,14 @@
   version = "v1.4.7"
 
 [[projects]]
+  digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
+  name = "github.com/go-sql-driver/mysql"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "72cd26f257d44c1114970e19afddcd812016007e"
+  version = "v1.4.1"
+
+[[projects]]
   digest = "1:701239373bbf22998c5a36c76d2ff4ee309b3980e39b7a66d72cabd3aab748fa"
   name = "github.com/gogo/protobuf"
   packages = ["proto"]
@@ -255,6 +263,20 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:c364e1046df58e7c1731edd337145461011d129bbb876932d9e5bbf105d07888"
+  name = "github.com/xwb1989/sqlparser"
+  packages = [
+    ".",
+    "dependency/bytes2",
+    "dependency/hack",
+    "dependency/querypb",
+    "dependency/sqltypes",
+  ]
+  pruneopts = "UT"
+  revision = "120387863bf27d04bc07db8015110a6e96d0146c"
+
+[[projects]]
+  branch = "master"
   digest = "1:53a1494ea11fd60e114b6b6d82af3f945af61ba98ffbd6c9cfe052acfc526aa0"
   name = "golang.org/x/crypto"
   packages = [
@@ -324,6 +346,14 @@
   version = "v0.3.0"
 
 [[projects]]
+  digest = "1:c25289f43ac4a68d88b02245742347c94f1e108c534dda442188015ff80669b3"
+  name = "google.golang.org/appengine"
+  packages = ["cloudsql"]
+  pruneopts = "UT"
+  revision = "e9657d882bb81064595ca3b56cbe2546bbabf7b1"
+  version = "v1.4.0"
+
+[[projects]]
   branch = "master"
   digest = "1:077c1c599507b3b3e9156d17d36e1e61928ee9b53a5b420f10f28ebd4a0b275c"
   name = "google.golang.org/genproto"
@@ -387,11 +417,13 @@
   input-imports = [
     "docker.io/go-docker",
     "docker.io/go-docker/api/types",
+    "github.com/go-sql-driver/mysql",
     "github.com/golang/protobuf/proto",
     "github.com/gomarkdown/markdown",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
+    "github.com/xwb1989/sqlparser",
     "golang.org/x/crypto/ssh",
     "google.golang.org/grpc",
     "google.golang.org/grpc/health",

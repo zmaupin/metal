@@ -20,6 +20,7 @@ const ExitUnknown int32 = -1
 // Server implements proto_rexecd.RexecdServer
 type Server interface {
 	proto_rexecd.RexecdServer
+	Run() error
 }
 
 // SSHEnv is a map of environment variables and their corresponding values
@@ -34,21 +35,30 @@ type SSHSessionBuilder struct {
 	clientConfig *ssh.ClientConfig
 }
 
+// SSHSessionBuilderOpt is an option for an SSHSessionBuilder
+type SSHSessionBuilderOpt func(*SSHSessionBuilder)
+
+// SSHSessionWithEnv adds an SSHEnv to the SSHSessionBuilder
+func SSHSessionWithEnv(env SSHEnv) SSHSessionBuilderOpt {
+	return func(s *SSHSessionBuilder) {
+		s.env = env
+	}
+}
+
+// SSHSessionWithPort adds a port to the SSHSessionBuilder
+func SSHSessionWithPort(port string) SSHSessionBuilderOpt {
+	return func(s *SSHSessionBuilder) {
+		s.port = port
+	}
+}
+
 // NewSSHSessionBuilder returns a pointer to an ssh.Session
-func NewSSHSessionBuilder(address string, sshConfig *ssh.ClientConfig) *SSHSessionBuilder {
-	return &SSHSessionBuilder{address: address, port: "22", clientConfig: sshConfig}
-}
-
-// AddEnv adds an SSHEnv to the builder
-func (s *SSHSessionBuilder) AddEnv(env SSHEnv) *SSHSessionBuilder {
-	s.env = env
-	return s
-}
-
-// AddPort ads a port to the builder
-func (s *SSHSessionBuilder) AddPort(port string) *SSHSessionBuilder {
-	s.port = port
-	return s
+func NewSSHSessionBuilder(address string, sshConfig *ssh.ClientConfig, opts ...SSHSessionBuilderOpt) *SSHSessionBuilder {
+	builder := &SSHSessionBuilder{address: address, port: "22", clientConfig: sshConfig}
+	for _, fn := range opts {
+		fn(builder)
+	}
+	return builder
 }
 
 // Build returns a pointer to an ssh.Session
@@ -80,26 +90,42 @@ type ExecRunner struct {
 	stderrPipeline pipeline.Bytes
 }
 
-// NewExecRunner returns a pointer to an ExecRunner
-func NewExecRunner(cmd string, sshSession *ssh.Session) *ExecRunner {
-	return &ExecRunner{
-		cmd:            cmd,
-		sshSession:     sshSession,
-		stdoutPipeline: pipeline.BytesNoOp,
-		stderrPipeline: pipeline.BytesNoOp,
+// ExecRunnerOpt is an option for an ExecRunner
+type ExecRunnerOpt func(*ExecRunner)
+
+// ExecRunnerWithStdoutPipeline adds a StdoutPipeline to an ExecRunner
+func ExecRunnerWithStdoutPipeline(p pipeline.Bytes) ExecRunnerOpt {
+	return func(e *ExecRunner) {
+		e.stdoutPipeline = p
 	}
 }
 
-// AddStdoutPipeline adds a pipeline for stdout
-func (e *ExecRunner) AddStdoutPipeline(p pipeline.Bytes) *ExecRunner {
-	e.stdoutPipeline = p
-	return e
+// ExecRunnerWithStderrPipeline adds a StderrPipeline to an ExecRunner
+func ExecRunnerWithStderrPipeline(p pipeline.Bytes) ExecRunnerOpt {
+	return func(e *ExecRunner) {
+		e.stderrPipeline = p
+	}
 }
 
-// AddStderrPipeline adds a pipeline for stderr
-func (e *ExecRunner) AddStderrPipeline(p pipeline.Bytes) *ExecRunner {
-	e.stderrPipeline = p
-	return e
+// NewExecRunner returns a pointer to an ExecRunner
+func NewExecRunner(cmd string, sshSession *ssh.Session, opts ...ExecRunnerOpt) *ExecRunner {
+	runner := &ExecRunner{
+		cmd:        cmd,
+		sshSession: sshSession,
+	}
+
+	for _, fn := range opts {
+		fn(runner)
+	}
+
+	if runner.stdoutPipeline == nil {
+		runner.stdoutPipeline = pipeline.BytesNoOp
+	}
+
+	if runner.stderrPipeline == nil {
+		runner.stderrPipeline = pipeline.BytesNoOp
+	}
+	return runner
 }
 
 // Run executes the command, feeding stdout into the stdout pipeline and stderr

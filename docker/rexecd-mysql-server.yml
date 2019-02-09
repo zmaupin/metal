@@ -1,0 +1,51 @@
+---
+# See: https://hub.docker.com/r/panubo/sshd
+version: "3.1"
+services:
+  rexecd:
+    network_mode: bridge
+    build:
+      dockerfile: docker/builds/rexecd/Dockerfile
+      context: ../
+    ports:
+      - "9000:9000"
+    volumes:
+      - "../:/go/src/github.com/metal-go/metal"
+    environment:
+      - METAL_LOG_LEVEL=debug
+      - METAL_REXECD_DATA_SOURCE_NAME=root:password@tcp(docker_db_1:3306)/
+      - METAL_REXECD_SERVER_TYPE=mysql
+    links:
+      - db
+  host01:
+    network_mode: bridge
+    ports:
+      - "2222:22"
+    image: panubo/sshd
+    volumes:
+      - ~/.ssh/id_rsa.pub:/etc/authorized_keys/dev
+    environment:
+      - SSH_USERS=dev:1001:1001
+  host02:
+    network_mode: bridge
+    ports:
+      - "4444:22"
+    image: panubo/sshd
+    volumes:
+      - ~/.ssh/id_rsa.pub:/etc/authorized_keys/dev
+    environment:
+      - SSH_USERS=dev:1001:1001
+  db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+    network_mode: bridge
+  adminer:
+    network_mode: bridge
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    links:
+      - db

@@ -18,7 +18,6 @@ const Main = ():JSX.Element => (
   <div id='root'>
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
-      <MAppBar title='Rexec'/>
       <Typography variant='h2'>
         get it done
       </Typography>

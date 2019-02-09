@@ -14,8 +14,7 @@ environment driven by docker-compose files in the docker directory. A
 development environment is defined by a yml file within this directory without
 the file extension. The current list of development environments:
 
-* rexecd-memory-server
-* rexecd-scylladb-server
+* rexecd-mysql-server
 
 There are also actions associated with each development environment. The
 following actions are:
@@ -29,14 +28,10 @@ For each development environment and action there exists a phony make target
 for orchestrating your development environment:
 
 
-* rexecd-memory-server-start
-* rexecd-memory-server-status
-* rexecd-memory-server-stop
-* rexecd-memory-server-restart
-* rexecd-scylladb-server-start
-* rexecd-scylladb-server-status
-* rexecd-scylladb-server-stop
-* rexecd-scylladb-server-restart
+* rexecd-mysql-server-start
+* rexecd-mysql-server-status
+* rexecd-mysql-server-stop
+* rexecd-mysql-server-restart
 
 ## Testing
 
