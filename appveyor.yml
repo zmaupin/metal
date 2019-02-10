@@ -7,4 +7,4 @@ test_script:
   - mkdir -p $GOPATH/src/github.com/$APPVEYOR_REPO_NAME
   - cp -R ./* $GOPATH/src/github.com/$APPVEYOR_REPO_NAME/
   - cd $GOPATH/src/github.com/$APPVEYOR_REPO_NAME
-  - go run tools/ci/main.go unit
+  - go run tools/ci/main.go unit --timeout 60
