@@ -17,7 +17,7 @@ var unitCmd = &cobra.Command{
 	Short: "Execute unit tests",
 	Long:  "Execute unit tests",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(timeoutSec))
 		defer cancel()
 		run := func() chan error {
 			ch := make(chan error)
