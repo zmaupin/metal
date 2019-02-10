@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 
@@ -19,8 +20,8 @@ var unitCmd = &cobra.Command{
 	Use:   "unit",
 	Short: "Execute unit tests",
 	Long:  "Execute unit tests",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return withTimeout(func(ctx context.Context, ch chan error) {
+	Run: func(cmd *cobra.Command, args []string) {
+		err := withTimeout(func(ctx context.Context, ch chan error) {
 			fmt.Println(unitHeader)
 			paths := []string{"test", "-v", "-tags", "unit"}
 			paths = append(paths, buildPaths()...)
@@ -31,6 +32,9 @@ var unitCmd = &cobra.Command{
 				ch <- err
 			}
 		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
