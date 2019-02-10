@@ -39,6 +39,14 @@ func Execute() {
 	}
 }
 
+func heading(s string) string {
+	return fmt.Sprintf("******** %s ********\n\n", s)
+}
+
+func notice(s string) string {
+	return fmt.Sprintf("==> %s\n", s)
+}
+
 func validatePkgArg() error {
 	if pkg == "" {
 		return nil
@@ -88,5 +96,6 @@ func withTimeout(worker worker) error {
 }
 
 func init() {
+	rootCmd.PersistentFlags().IntVar(&timeoutSec, "timeout", 60, timeoutFlagDesc)
 	rootCmd.PersistentFlags().StringVar(&pkg, "pkg", "", fmt.Sprintf("Target package. Options: %s\n", strings.Join(packages, " ")))
 }

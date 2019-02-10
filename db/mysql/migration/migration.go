@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/metal-go/metal/config"
-	"github.com/metal-go/metal/db/mysql"
 )
 
 const initDB = `
@@ -16,7 +15,7 @@ CREATE DATABASE IF NOT EXISTS rexecd;
 const initMigrationsTable = `
 CREATE TABLE IF NOT EXISTS migration (
   id int NOT NULL AUTO_INCREMENT,
-  success tinyint,
+  success BOOLEAN,
   PRIMARY KEY (id));
 `
 
@@ -62,7 +61,7 @@ func (m *Migrate) Run() error {
 	if err != nil {
 		return err
 	}
-	if err = mysql.ExecuteSQL(m.ctx, db, initDB); err != nil {
+	if _, err = db.ExecContext(m.ctx, initDB); err != nil {
 		return err
 	}
 
@@ -71,5 +70,41 @@ func (m *Migrate) Run() error {
 		return err
 	}
 
-	return mysql.ExecuteSQL(m.ctx, db, initMigrationsTable)
+	if _, err = db.ExecContext(m.ctx, initMigrationsTable); err != nil {
+		return err
+	}
+
+	rows, err := db.QueryContext(m.ctx, "SELECT * FROM migration;\n")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var id int
+	for rows.Next() {
+		var success int
+		if err := rows.Scan(&id, &success); err != nil {
+			return err
+		}
+		if success == 1 {
+			continue
+		}
+		if _, err := db.ExecContext(m.ctx, migrations[id-1]); err != nil {
+			return err
+		}
+		db.QueryContext(m.ctx, "INSERT INTO migration (id, success) VALUES (?, TRUE);\n", id)
+	}
+
+	if id == len(migrations) {
+		return nil
+	}
+
+	for i, mig := range migrations[id-1:] {
+		db.QueryContext(m.ctx, "INSERT INTO migration VALUES (FALSE);\n")
+		if _, err := db.ExecContext(m.ctx, mig); err != nil {
+			return err
+		}
+		db.QueryContext(m.ctx, "INSERT INTO migration (id, success) VALUES (?, TRUE);\n", i+1)
+	}
+	return nil
 }

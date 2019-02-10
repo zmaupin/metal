@@ -2,11 +2,18 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/spf13/cobra"
 )
+
+const unitHeader = `
+################################################################################
+# Unit Test Stage ##############################################################
+################################################################################
+`
 
 var unitCmd = &cobra.Command{
 	Use:   "unit",
@@ -14,6 +21,7 @@ var unitCmd = &cobra.Command{
 	Long:  "Execute unit tests",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return withTimeout(func(ctx context.Context, ch chan error) {
+			fmt.Println(unitHeader)
 			paths := []string{"test", "-v", "-tags", "unit"}
 			paths = append(paths, buildPaths()...)
 			cmd := exec.CommandContext(ctx, "go", paths...)
@@ -27,6 +35,5 @@ var unitCmd = &cobra.Command{
 }
 
 func init() {
-	unitCmd.Flags().IntVar(&timeoutSec, "timeout", 5, timeoutFlagDesc)
 	rootCmd.AddCommand(unitCmd)
 }
