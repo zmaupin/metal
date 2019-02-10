@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 
-	"github.com/Unknwon/log"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +42,7 @@ func MySQLWorker(ctx context.Context, ch chan error) {
 		cmd = exec.CommandContext(ctx, "docker", "rm", "--force", id)
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
-			log.Error(err.Error())
+			fmt.Println(err.Error())
 		}
 	}
 
