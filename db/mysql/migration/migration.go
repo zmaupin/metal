@@ -14,9 +14,9 @@ CREATE DATABASE IF NOT EXISTS rexecd;
 `
 
 const initMigrationsTable = `
-CREATE TABLE IF NOT EXISTS migrations (
+CREATE TABLE IF NOT EXISTS migration (
   id int NOT NULL AUTO_INCREMENT,
-  succeeded tinyint, 
+  success tinyint,
   PRIMARY KEY (id));
 `
 
