@@ -41,11 +41,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 'password'
     network_mode: bridge
-  adminer:
-    network_mode: bridge
-    image: adminer
-    restart: always
+    stdin_open: true
+    tty: true
     ports:
-      - 8080:8080
-    links:
-      - db
+      - 3306:3306
