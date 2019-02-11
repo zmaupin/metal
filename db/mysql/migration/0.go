@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS command_stdout (
   PRIMARY KEY (id, line)
 );
 
-# multi-valused attribute
+# multi-valued attribute
 CREATE TABLE IF NOT EXISTS command_stderr (
   id SERIAL,
   line BLOB NOT NULL,
