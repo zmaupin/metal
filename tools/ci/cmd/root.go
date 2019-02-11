@@ -26,8 +26,8 @@ var rootCmd = &cobra.Command{
 	Use:   "ci",
 	Short: "Continuous Integration for Metal",
 	Long:  "Continuous Integration for Metal",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return nil
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
 	},
 }
 

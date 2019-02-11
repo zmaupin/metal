@@ -32,7 +32,7 @@ var protoCmd = &cobra.Command{
 					base := filepath.Join("proto", svc)
 					name := filepath.Join(base, i.Name())
 					fmt.Println(notice(fmt.Sprintf("compiling %s", name)))
-					cmd := exec.Command("protoc", "-I", base, "--go_out", base, name)
+					cmd := exec.Command("protoc", "--proto_path", base, fmt.Sprintf("--go_out=plugins=grpc:%s", base), name)
 					cmd.Stdout = os.Stdout
 					cmd.Stderr = os.Stderr
 					if err := cmd.Run(); err != nil {

@@ -4,8 +4,10 @@
 package rexecd
 
 import (
+	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
 	math "math"
 )
 
@@ -20,7 +22,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type HostRequest struct {
+type RegisterHostRequest struct {
 	Id         uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Fqdn       string `protobuf:"bytes,2,opt,name=fqdn,proto3" json:"fqdn,omitempty"`
 	Port       uint32 `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
@@ -43,105 +45,105 @@ type HostRequest struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *HostRequest) Reset()         { *m = HostRequest{} }
-func (m *HostRequest) String() string { return proto.CompactTextString(m) }
-func (*HostRequest) ProtoMessage()    {}
-func (*HostRequest) Descriptor() ([]byte, []int) {
+func (m *RegisterHostRequest) Reset()         { *m = RegisterHostRequest{} }
+func (m *RegisterHostRequest) String() string { return proto.CompactTextString(m) }
+func (*RegisterHostRequest) ProtoMessage()    {}
+func (*RegisterHostRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a5a97cdcf024307f, []int{0}
 }
 
-func (m *HostRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_HostRequest.Unmarshal(m, b)
+func (m *RegisterHostRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RegisterHostRequest.Unmarshal(m, b)
 }
-func (m *HostRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_HostRequest.Marshal(b, m, deterministic)
+func (m *RegisterHostRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RegisterHostRequest.Marshal(b, m, deterministic)
 }
-func (m *HostRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_HostRequest.Merge(m, src)
+func (m *RegisterHostRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterHostRequest.Merge(m, src)
 }
-func (m *HostRequest) XXX_Size() int {
-	return xxx_messageInfo_HostRequest.Size(m)
+func (m *RegisterHostRequest) XXX_Size() int {
+	return xxx_messageInfo_RegisterHostRequest.Size(m)
 }
-func (m *HostRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_HostRequest.DiscardUnknown(m)
+func (m *RegisterHostRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterHostRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_HostRequest proto.InternalMessageInfo
+var xxx_messageInfo_RegisterHostRequest proto.InternalMessageInfo
 
-func (m *HostRequest) GetId() uint64 {
+func (m *RegisterHostRequest) GetId() uint64 {
 	if m != nil {
 		return m.Id
 	}
 	return 0
 }
 
-func (m *HostRequest) GetFqdn() string {
+func (m *RegisterHostRequest) GetFqdn() string {
 	if m != nil {
 		return m.Fqdn
 	}
 	return ""
 }
 
-func (m *HostRequest) GetPort() uint32 {
+func (m *RegisterHostRequest) GetPort() uint32 {
 	if m != nil {
 		return m.Port
 	}
 	return 0
 }
 
-func (m *HostRequest) GetPrivateKey() []byte {
+func (m *RegisterHostRequest) GetPrivateKey() []byte {
 	if m != nil {
 		return m.PrivateKey
 	}
 	return nil
 }
 
-func (m *HostRequest) GetPublicKey() []byte {
+func (m *RegisterHostRequest) GetPublicKey() []byte {
 	if m != nil {
 		return m.PublicKey
 	}
 	return nil
 }
 
-func (m *HostRequest) GetKeyType() string {
+func (m *RegisterHostRequest) GetKeyType() string {
 	if m != nil {
 		return m.KeyType
 	}
 	return ""
 }
 
-type HostResponse struct {
+type RegisterHostResponse struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *HostResponse) Reset()         { *m = HostResponse{} }
-func (m *HostResponse) String() string { return proto.CompactTextString(m) }
-func (*HostResponse) ProtoMessage()    {}
-func (*HostResponse) Descriptor() ([]byte, []int) {
+func (m *RegisterHostResponse) Reset()         { *m = RegisterHostResponse{} }
+func (m *RegisterHostResponse) String() string { return proto.CompactTextString(m) }
+func (*RegisterHostResponse) ProtoMessage()    {}
+func (*RegisterHostResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a5a97cdcf024307f, []int{1}
 }
 
-func (m *HostResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_HostResponse.Unmarshal(m, b)
+func (m *RegisterHostResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RegisterHostResponse.Unmarshal(m, b)
 }
-func (m *HostResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_HostResponse.Marshal(b, m, deterministic)
+func (m *RegisterHostResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RegisterHostResponse.Marshal(b, m, deterministic)
 }
-func (m *HostResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_HostResponse.Merge(m, src)
+func (m *RegisterHostResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterHostResponse.Merge(m, src)
 }
-func (m *HostResponse) XXX_Size() int {
-	return xxx_messageInfo_HostResponse.Size(m)
+func (m *RegisterHostResponse) XXX_Size() int {
+	return xxx_messageInfo_RegisterHostResponse.Size(m)
 }
-func (m *HostResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_HostResponse.DiscardUnknown(m)
+func (m *RegisterHostResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterHostResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_HostResponse proto.InternalMessageInfo
+var xxx_messageInfo_RegisterHostResponse proto.InternalMessageInfo
 
-type UserRequest struct {
+type RegisterUserRequest struct {
 	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	FirstName            string   `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
 	LastName             string   `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
@@ -153,103 +155,103 @@ type UserRequest struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UserRequest) Reset()         { *m = UserRequest{} }
-func (m *UserRequest) String() string { return proto.CompactTextString(m) }
-func (*UserRequest) ProtoMessage()    {}
-func (*UserRequest) Descriptor() ([]byte, []int) {
+func (m *RegisterUserRequest) Reset()         { *m = RegisterUserRequest{} }
+func (m *RegisterUserRequest) String() string { return proto.CompactTextString(m) }
+func (*RegisterUserRequest) ProtoMessage()    {}
+func (*RegisterUserRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a5a97cdcf024307f, []int{2}
 }
 
-func (m *UserRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UserRequest.Unmarshal(m, b)
+func (m *RegisterUserRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RegisterUserRequest.Unmarshal(m, b)
 }
-func (m *UserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UserRequest.Marshal(b, m, deterministic)
+func (m *RegisterUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RegisterUserRequest.Marshal(b, m, deterministic)
 }
-func (m *UserRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UserRequest.Merge(m, src)
+func (m *RegisterUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterUserRequest.Merge(m, src)
 }
-func (m *UserRequest) XXX_Size() int {
-	return xxx_messageInfo_UserRequest.Size(m)
+func (m *RegisterUserRequest) XXX_Size() int {
+	return xxx_messageInfo_RegisterUserRequest.Size(m)
 }
-func (m *UserRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UserRequest.DiscardUnknown(m)
+func (m *RegisterUserRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterUserRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UserRequest proto.InternalMessageInfo
+var xxx_messageInfo_RegisterUserRequest proto.InternalMessageInfo
 
-func (m *UserRequest) GetUsername() string {
+func (m *RegisterUserRequest) GetUsername() string {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-func (m *UserRequest) GetFirstName() string {
+func (m *RegisterUserRequest) GetFirstName() string {
 	if m != nil {
 		return m.FirstName
 	}
 	return ""
 }
 
-func (m *UserRequest) GetLastName() string {
+func (m *RegisterUserRequest) GetLastName() string {
 	if m != nil {
 		return m.LastName
 	}
 	return ""
 }
 
-func (m *UserRequest) GetAdmin() bool {
+func (m *RegisterUserRequest) GetAdmin() bool {
 	if m != nil {
 		return m.Admin
 	}
 	return false
 }
 
-func (m *UserRequest) GetPrivateKey() []byte {
+func (m *RegisterUserRequest) GetPrivateKey() []byte {
 	if m != nil {
 		return m.PrivateKey
 	}
 	return nil
 }
 
-func (m *UserRequest) GetPublicKey() []byte {
+func (m *RegisterUserRequest) GetPublicKey() []byte {
 	if m != nil {
 		return m.PublicKey
 	}
 	return nil
 }
 
-type UserResponse struct {
+type RegisterUserResponse struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UserResponse) Reset()         { *m = UserResponse{} }
-func (m *UserResponse) String() string { return proto.CompactTextString(m) }
-func (*UserResponse) ProtoMessage()    {}
-func (*UserResponse) Descriptor() ([]byte, []int) {
+func (m *RegisterUserResponse) Reset()         { *m = RegisterUserResponse{} }
+func (m *RegisterUserResponse) String() string { return proto.CompactTextString(m) }
+func (*RegisterUserResponse) ProtoMessage()    {}
+func (*RegisterUserResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a5a97cdcf024307f, []int{3}
 }
 
-func (m *UserResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UserResponse.Unmarshal(m, b)
+func (m *RegisterUserResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RegisterUserResponse.Unmarshal(m, b)
 }
-func (m *UserResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UserResponse.Marshal(b, m, deterministic)
+func (m *RegisterUserResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RegisterUserResponse.Marshal(b, m, deterministic)
 }
-func (m *UserResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UserResponse.Merge(m, src)
+func (m *RegisterUserResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterUserResponse.Merge(m, src)
 }
-func (m *UserResponse) XXX_Size() int {
-	return xxx_messageInfo_UserResponse.Size(m)
+func (m *RegisterUserResponse) XXX_Size() int {
+	return xxx_messageInfo_RegisterUserResponse.Size(m)
 }
-func (m *UserResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_UserResponse.DiscardUnknown(m)
+func (m *RegisterUserResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterUserResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UserResponse proto.InternalMessageInfo
+var xxx_messageInfo_RegisterUserResponse proto.InternalMessageInfo
 
 type CommandRequest struct {
 	Id                   uint64   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -394,10 +396,10 @@ func (m *CommandResponse) GetExitCode() uint32 {
 }
 
 func init() {
-	proto.RegisterType((*HostRequest)(nil), "rexecd.HostRequest")
-	proto.RegisterType((*HostResponse)(nil), "rexecd.HostResponse")
-	proto.RegisterType((*UserRequest)(nil), "rexecd.UserRequest")
-	proto.RegisterType((*UserResponse)(nil), "rexecd.UserResponse")
+	proto.RegisterType((*RegisterHostRequest)(nil), "rexecd.RegisterHostRequest")
+	proto.RegisterType((*RegisterHostResponse)(nil), "rexecd.RegisterHostResponse")
+	proto.RegisterType((*RegisterUserRequest)(nil), "rexecd.RegisterUserRequest")
+	proto.RegisterType((*RegisterUserResponse)(nil), "rexecd.RegisterUserResponse")
 	proto.RegisterType((*CommandRequest)(nil), "rexecd.CommandRequest")
 	proto.RegisterType((*CommandResponse)(nil), "rexecd.CommandResponse")
 }
@@ -405,34 +407,201 @@ func init() {
 func init() { proto.RegisterFile("rexecd.proto", fileDescriptor_a5a97cdcf024307f) }
 
 var fileDescriptor_a5a97cdcf024307f = []byte{
-	// 460 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x93, 0xcf, 0x6e, 0xd3, 0x40,
-	0x10, 0xc6, 0xd9, 0xc4, 0x71, 0xe2, 0x89, 0x9b, 0xa2, 0xa5, 0x6a, 0x4d, 0x00, 0x11, 0xe5, 0x42,
-	0x4e, 0x15, 0x82, 0x23, 0x12, 0x97, 0x5e, 0x40, 0x48, 0x1c, 0x56, 0xe5, 0x6c, 0xb9, 0xd9, 0x29,
-	0xac, 0x52, 0x7b, 0xdd, 0xdd, 0x0d, 0xaa, 0xdf, 0x81, 0x03, 0x8f, 0xc0, 0x7b, 0x70, 0xe3, 0xc9,
-	0xd0, 0xce, 0xda, 0xcd, 0x9f, 0x2a, 0xea, 0x6d, 0xe7, 0xfb, 0x3c, 0xda, 0xdf, 0xe7, 0x99, 0x85,
-	0xd4, 0xe0, 0x1d, 0x2e, 0xe5, 0x79, 0x6d, 0xb4, 0xd3, 0x3c, 0x0e, 0xd5, 0xfc, 0x0f, 0x83, 0xf1,
-	0x27, 0x6d, 0x9d, 0xc0, 0xdb, 0x35, 0x5a, 0xc7, 0x27, 0xd0, 0x53, 0x32, 0x63, 0x33, 0xb6, 0x88,
-	0x44, 0x4f, 0x49, 0xce, 0x21, 0xba, 0xbe, 0x95, 0x55, 0xd6, 0x9b, 0xb1, 0x45, 0x22, 0xe8, 0xec,
-	0xb5, 0x5a, 0x1b, 0x97, 0xf5, 0x67, 0x6c, 0x71, 0x24, 0xe8, 0xcc, 0x5f, 0xc3, 0xb8, 0x36, 0xea,
-	0x67, 0xe1, 0x30, 0x5f, 0x61, 0x93, 0x45, 0x33, 0xb6, 0x48, 0x05, 0xb4, 0xd2, 0x17, 0x6c, 0xf8,
-	0x2b, 0x80, 0x7a, 0x7d, 0x75, 0xa3, 0x96, 0xe4, 0x0f, 0xc8, 0x4f, 0x82, 0xe2, 0xed, 0xe7, 0x30,
-	0x5a, 0x61, 0x93, 0xbb, 0xa6, 0xc6, 0x2c, 0xa6, 0xbb, 0x86, 0x2b, 0x6c, 0x2e, 0x9b, 0x1a, 0xe7,
-	0x13, 0x48, 0x03, 0xa1, 0xad, 0x75, 0x65, 0x71, 0xfe, 0x97, 0xc1, 0xf8, 0x9b, 0x45, 0xd3, 0x21,
-	0x4f, 0x61, 0xb4, 0xb6, 0x68, 0xaa, 0xa2, 0x44, 0x02, 0x4f, 0xc4, 0x7d, 0xed, 0x6f, 0xbd, 0x56,
-	0xc6, 0xba, 0x9c, 0xdc, 0x10, 0x22, 0x21, 0xe5, 0xab, 0xb7, 0x5f, 0x40, 0x72, 0x53, 0x74, 0x6e,
-	0x3f, 0xf4, 0x7a, 0x81, 0xcc, 0x13, 0x18, 0x14, 0xb2, 0x54, 0x15, 0x85, 0x19, 0x89, 0x50, 0xec,
-	0x07, 0x1d, 0x3c, 0x12, 0x34, 0xde, 0x0b, 0xea, 0xd3, 0x04, 0xf8, 0x36, 0xcd, 0x6f, 0x06, 0x93,
-	0x0b, 0x5d, 0x96, 0x45, 0x25, 0x0f, 0xcd, 0xe0, 0x29, 0xf4, 0x97, 0xa5, 0x6c, 0xe9, 0xfd, 0x71,
-	0x27, 0x72, 0x7f, 0x2f, 0xf2, 0x19, 0x0c, 0x7f, 0x68, 0xeb, 0x72, 0x25, 0x09, 0x3c, 0x12, 0xb1,
-	0x2f, 0x3f, 0x4b, 0xfe, 0x06, 0x8e, 0xad, 0x2b, 0x8c, 0xcb, 0x9d, 0x2a, 0xd1, 0xba, 0xa2, 0xac,
-	0x89, 0x3e, 0x12, 0x13, 0x92, 0x2f, 0x3b, 0x75, 0xfe, 0x8b, 0xc1, 0xf1, 0x3d, 0x52, 0xc0, 0x7c,
-	0xc0, 0x74, 0x0a, 0xb1, 0x75, 0x52, 0xaf, 0x1d, 0x61, 0xa5, 0xa2, 0xad, 0x5a, 0x1d, 0x8d, 0x21,
-	0xae, 0xa0, 0xa3, 0x31, 0xfc, 0x25, 0x24, 0x9b, 0x6b, 0x03, 0xd7, 0x46, 0xf0, 0x73, 0xc0, 0x3b,
-	0xe5, 0xf2, 0xa5, 0x96, 0x48, 0x50, 0x47, 0x62, 0xe4, 0x85, 0x0b, 0x2d, 0xf1, 0xdd, 0x3f, 0x06,
-	0xb1, 0xa0, 0x6d, 0xe5, 0x1f, 0x61, 0xd8, 0x82, 0xf1, 0xd3, 0xf3, 0x76, 0x9f, 0x77, 0x7f, 0xde,
-	0xf4, 0xec, 0x81, 0xde, 0xfe, 0xe8, 0x27, 0x6f, 0x19, 0xff, 0x00, 0xa9, 0xc0, 0xef, 0xca, 0x3a,
-	0x34, 0x7e, 0xa5, 0xf8, 0xb3, 0xee, 0xe3, 0xad, 0x27, 0x30, 0x3d, 0xd9, 0x15, 0xbb, 0xf6, 0xed,
-	0x66, 0x3f, 0xc1, 0x4d, 0xf3, 0xd6, 0x32, 0x1e, 0x6a, 0xbe, 0x8a, 0xe9, 0xd9, 0xbd, 0xff, 0x1f,
-	0x00, 0x00, 0xff, 0xff, 0x8d, 0x31, 0x97, 0xf0, 0x86, 0x03, 0x00, 0x00,
+	// 466 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x93, 0x41, 0x6f, 0xd3, 0x30,
+	0x14, 0xc7, 0xe7, 0x36, 0x4d, 0x9b, 0x47, 0xd7, 0x21, 0x33, 0x75, 0xa1, 0x1b, 0xa2, 0xea, 0x85,
+	0x9e, 0x26, 0x04, 0x77, 0x2e, 0xbb, 0x80, 0x26, 0x71, 0xb0, 0xc6, 0x39, 0xca, 0xea, 0x37, 0xb0,
+	0xba, 0xc4, 0x99, 0xed, 0xa2, 0xe5, 0x3b, 0x70, 0xe0, 0x63, 0xf0, 0x3d, 0xf8, 0x26, 0x7c, 0x12,
+	0xe4, 0xe7, 0x64, 0x4b, 0xdb, 0x21, 0x6e, 0x7e, 0xff, 0x7f, 0xf2, 0xfc, 0xff, 0xd9, 0xcf, 0x30,
+	0x36, 0x78, 0x8f, 0x2b, 0x79, 0x5e, 0x19, 0xed, 0x34, 0x8f, 0x43, 0xb5, 0xf8, 0xc5, 0xe0, 0x85,
+	0xc0, 0xaf, 0xca, 0x3a, 0x34, 0x1f, 0xb5, 0x75, 0x02, 0xef, 0x36, 0x68, 0x1d, 0x9f, 0x40, 0x4f,
+	0xc9, 0x94, 0xcd, 0xd9, 0x32, 0x12, 0x3d, 0x25, 0x39, 0x87, 0xe8, 0xe6, 0x4e, 0x96, 0x69, 0x6f,
+	0xce, 0x96, 0x89, 0xa0, 0xb5, 0xd7, 0x2a, 0x6d, 0x5c, 0xda, 0x9f, 0xb3, 0xe5, 0xa1, 0xa0, 0x35,
+	0x7f, 0x0d, 0xcf, 0x2a, 0xa3, 0xbe, 0xe7, 0x0e, 0xb3, 0x35, 0xd6, 0x69, 0x34, 0x67, 0xcb, 0xb1,
+	0x80, 0x46, 0xba, 0xc4, 0x9a, 0xbf, 0x02, 0xa8, 0x36, 0xd7, 0xb7, 0x6a, 0x45, 0xfe, 0x80, 0xfc,
+	0x24, 0x28, 0xde, 0x7e, 0x09, 0xa3, 0x35, 0xd6, 0x99, 0xab, 0x2b, 0x4c, 0x63, 0xda, 0x6b, 0xb8,
+	0xc6, 0xfa, 0xaa, 0xae, 0x70, 0x31, 0x85, 0xe3, 0xed, 0xa4, 0xb6, 0xd2, 0xa5, 0xc5, 0xc5, 0xef,
+	0x0e, 0xc2, 0x17, 0x8b, 0xa6, 0x45, 0x98, 0xc1, 0x68, 0x63, 0xd1, 0x94, 0x79, 0x81, 0x04, 0x92,
+	0x88, 0x87, 0xda, 0xa7, 0xb8, 0x51, 0xc6, 0xba, 0x8c, 0xdc, 0x00, 0x95, 0x90, 0xf2, 0xd9, 0xdb,
+	0xa7, 0x90, 0xdc, 0xe6, 0xad, 0xdb, 0x0f, 0xff, 0x7a, 0x81, 0xcc, 0x63, 0x18, 0xe4, 0xb2, 0x50,
+	0x25, 0xc1, 0x8d, 0x44, 0x28, 0x76, 0xc1, 0x07, 0xff, 0x01, 0x8f, 0x77, 0xc0, 0xbb, 0x74, 0x01,
+	0xa2, 0xa1, 0xfb, 0xc9, 0x60, 0x72, 0xa1, 0x8b, 0x22, 0x2f, 0xe5, 0xbf, 0xee, 0xe6, 0x39, 0xf4,
+	0x57, 0x85, 0x6c, 0x28, 0xfc, 0x72, 0x0b, 0xbd, 0xbf, 0x83, 0x7e, 0x02, 0xc3, 0x6f, 0xda, 0xba,
+	0x4c, 0x49, 0x02, 0x88, 0x44, 0xec, 0xcb, 0x4f, 0x92, 0xbf, 0x81, 0x23, 0xeb, 0x72, 0xe3, 0x32,
+	0xa7, 0x0a, 0xb4, 0x2e, 0x2f, 0x2a, 0xa2, 0x88, 0xc4, 0x84, 0xe4, 0xab, 0x56, 0x5d, 0xfc, 0x60,
+	0x70, 0xf4, 0x10, 0x29, 0xc4, 0xdc, 0xcb, 0x34, 0x85, 0xd8, 0x3a, 0xa9, 0x37, 0x8e, 0x62, 0x8d,
+	0x45, 0x53, 0x35, 0x3a, 0x1a, 0x43, 0xb9, 0x82, 0x8e, 0xc6, 0xf0, 0x33, 0x48, 0x1e, 0xb7, 0x0d,
+	0xb9, 0x1e, 0x05, 0x7f, 0x1f, 0x78, 0xaf, 0x5c, 0xb6, 0xd2, 0x12, 0x29, 0xd4, 0xa1, 0x18, 0x79,
+	0xe1, 0x42, 0x4b, 0x7c, 0xf7, 0x87, 0x41, 0x2c, 0x68, 0x9a, 0xf9, 0x07, 0x18, 0x36, 0xc1, 0xf8,
+	0xf4, 0xbc, 0x99, 0xf7, 0xed, 0xc3, 0x9b, 0x9d, 0xec, 0xe9, 0xcd, 0x41, 0x1f, 0xbc, 0x65, 0xfc,
+	0x12, 0xc6, 0xdd, 0x11, 0xe3, 0xa7, 0xed, 0xc7, 0x4f, 0x3c, 0x91, 0xd9, 0xd9, 0xd3, 0x66, 0xdb,
+	0xae, 0xdb, 0xcc, 0xdf, 0xe8, 0x7e, 0xb3, 0xce, 0xb0, 0xee, 0x37, 0xdb, 0x1a, 0x82, 0x83, 0xeb,
+	0x98, 0x9e, 0xed, 0xfb, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xec, 0xb2, 0x2d, 0x46, 0xc6, 0x03,
+	0x00, 0x00,
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// RexecdClient is the client API for Rexecd service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type RexecdClient interface {
+	Command(ctx context.Context, in *CommandRequest, opts ...grpc.CallOption) (Rexecd_CommandClient, error)
+	RegisterHost(ctx context.Context, in *RegisterHostRequest, opts ...grpc.CallOption) (*RegisterHostResponse, error)
+	RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error)
+}
+
+type rexecdClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewRexecdClient(cc *grpc.ClientConn) RexecdClient {
+	return &rexecdClient{cc}
+}
+
+func (c *rexecdClient) Command(ctx context.Context, in *CommandRequest, opts ...grpc.CallOption) (Rexecd_CommandClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Rexecd_serviceDesc.Streams[0], "/rexecd.Rexecd/Command", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &rexecdCommandClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Rexecd_CommandClient interface {
+	Recv() (*CommandResponse, error)
+	grpc.ClientStream
+}
+
+type rexecdCommandClient struct {
+	grpc.ClientStream
+}
+
+func (x *rexecdCommandClient) Recv() (*CommandResponse, error) {
+	m := new(CommandResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *rexecdClient) RegisterHost(ctx context.Context, in *RegisterHostRequest, opts ...grpc.CallOption) (*RegisterHostResponse, error) {
+	out := new(RegisterHostResponse)
+	err := c.cc.Invoke(ctx, "/rexecd.Rexecd/RegisterHost", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rexecdClient) RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error) {
+	out := new(RegisterUserResponse)
+	err := c.cc.Invoke(ctx, "/rexecd.Rexecd/RegisterUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RexecdServer is the server API for Rexecd service.
+type RexecdServer interface {
+	Command(*CommandRequest, Rexecd_CommandServer) error
+	RegisterHost(context.Context, *RegisterHostRequest) (*RegisterHostResponse, error)
+	RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error)
+}
+
+func RegisterRexecdServer(s *grpc.Server, srv RexecdServer) {
+	s.RegisterService(&_Rexecd_serviceDesc, srv)
+}
+
+func _Rexecd_Command_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(CommandRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(RexecdServer).Command(m, &rexecdCommandServer{stream})
+}
+
+type Rexecd_CommandServer interface {
+	Send(*CommandResponse) error
+	grpc.ServerStream
+}
+
+type rexecdCommandServer struct {
+	grpc.ServerStream
+}
+
+func (x *rexecdCommandServer) Send(m *CommandResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Rexecd_RegisterHost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterHostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RexecdServer).RegisterHost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rexecd.Rexecd/RegisterHost",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RexecdServer).RegisterHost(ctx, req.(*RegisterHostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rexecd_RegisterUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RexecdServer).RegisterUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rexecd.Rexecd/RegisterUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RexecdServer).RegisterUser(ctx, req.(*RegisterUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Rexecd_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rexecd.Rexecd",
+	HandlerType: (*RexecdServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RegisterHost",
+			Handler:    _Rexecd_RegisterHost_Handler,
+		},
+		{
+			MethodName: "RegisterUser",
+			Handler:    _Rexecd_RegisterUser_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Command",
+			Handler:       _Rexecd_Command_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "rexecd.proto",
 }

@@ -4,11 +4,11 @@ package rexecd;
 
 service Rexecd {
   rpc Command(CommandRequest) returns (stream CommandResponse) {}
-  rpc RegisterHost(HostRequest) returns (HostResponse) {}
-  rpc RegisterUser(UserRequest) returns (HostResponse) {}
+  rpc RegisterHost(RegisterHostRequest) returns (RegisterHostResponse) {}
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
 }
 
-message HostRequest {
+message RegisterHostRequest {
   uint64 id = 1;
   string fqdn = 2;
   uint32 port = 3;
@@ -28,9 +28,9 @@ message HostRequest {
   string key_type = 6;
 }
 
-message HostResponse {}
+message RegisterHostResponse {}
 
-message UserRequest {
+message RegisterUserRequest {
   string username = 1;
   string first_name = 2;
   string last_name = 3;
@@ -39,7 +39,7 @@ message UserRequest {
   bytes  public_key = 6;
 }
 
-message UserResponse {}
+message RegisterUserResponse {}
 
 message CommandRequest {
   uint64 id = 1;
