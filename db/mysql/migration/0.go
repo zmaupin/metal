@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS command (
   id SERIAL,
   cmd TEXT NOT NULL,
   timestamp TIMESTAMP NOT NULL,
+  exit_code SMALLINT,
   PRIMARY KEY (id)
 );
 
