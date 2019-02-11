@@ -5,17 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"strings"
-
-	"github.com/xwb1989/sqlparser"
 )
 
 // ExecuteSQL executes each
 func ExecuteSQL(ctx context.Context, db *sql.DB, s string) error {
 	for statement := range statementGenerator(s) {
-		if _, err := sqlparser.Parse(statement); err != nil {
-			return err
-		}
-
 		if _, err := db.ExecContext(ctx, statement); err != nil {
 			return err
 		}
