@@ -46,9 +46,8 @@ func (m *Server) RegisterHost(ctx context.Context, r *proto_rexecd.RegisterHostR
 func (m *Server) RegisterUser(ctx context.Context, r *proto_rexecd.RegisterUserRequest) (
 	*proto_rexecd.RegisterUserResponse, error,
 ) {
-	u := NewUser(m.db, r.GetUsername(), r.GetPrivateKey(), r.GetPublicKey(),
-		WithUserFirstName(r.GetFirstName()), WithUserLastName(r.GetLastName()),
-		WithUserAdmin(r.GetAdmin()))
+	u := NewUser(m.db, r.GetUsername(), WithUserFirstName(r.GetFirstName()),
+		WithUserLastName(r.GetLastName()), WithUserAdmin(r.GetAdmin()))
 	err := u.Create(ctx)
 	return &proto_rexecd.RegisterUserResponse{}, err
 }

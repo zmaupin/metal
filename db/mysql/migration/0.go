@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE TABLE IF NOT EXISTS command (
   id        SERIAL,
   cmd       TEXT NOT NULL,
-  timestamp TIMESTAMP NOT NULL,
+  timestamp int UNSIGNED NOT NULL,
   exit_code SMALLINT,
 
   PRIMARY KEY (id)
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS command (
 # multi-valued attribute
 CREATE TABLE IF NOT EXISTS command_stdout (
   id        SERIAL,
-  timestamp TIMESTAMP NOT NULL,
+  timestamp int UNSIGNED NOT NULL,
   line      BLOB NOT NULL,
 
   FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS command_stdout (
 # multi-valued attribute
 CREATE TABLE IF NOT EXISTS command_stderr (
   id        SERIAL,
-  timestamp TIMESTAMP NOT NULL,
+  timestamp int UNSIGNED NOT NULL,
   line      BLOB NOT NULL,
 
   FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,

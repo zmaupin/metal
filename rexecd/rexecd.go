@@ -131,6 +131,7 @@ func NewExecRunner(cmd string, sshSession *ssh.Session, opts ...ExecRunnerOpt) *
 // Run executes the command, feeding stdout into the stdout pipeline and stderr
 // into the stderr pipeline
 func (e *ExecRunner) Run() (statusCode int32, err error) {
+	defer e.sshSession.Close()
 	// Setup stdout and stderr readers and scanners
 	outReader, err := e.sshSession.StdoutPipe()
 	if err != nil {
@@ -146,8 +147,7 @@ func (e *ExecRunner) Run() (statusCode int32, err error) {
 	// Feed bytes of lines to the given pipeline
 	feeder := func(scanner *bufio.Scanner, pipeline pipeline.Bytes) {
 		for scanner.Scan() {
-			newLine := "\n"
-			line := append(scanner.Bytes(), newLine...)
+			line := append(scanner.Bytes(), byte('\n'))
 			pipeline(line)
 		}
 	}
@@ -183,19 +183,19 @@ func BuildAuthMethod(userPrivateKey []byte) (ssh.AuthMethod, error) {
 // BuildClientConfig builds an ssh.ClientConfig based on the given
 // proto_rexecd.RegisterUserRequest and proto_rexecd.RegisterHostRequest. This
 // will enforce FixedHostKey checking.
-func BuildClientConfig(registerUserRequest proto_rexecd.RegisterUserRequest, registerHostRequest proto_rexecd.RegisterHostRequest) (*ssh.ClientConfig, error) {
-	key, _, _, _, err := ssh.ParseAuthorizedKey(registerHostRequest.PublicKey)
+func BuildClientConfig(username string, publicHostKey, privateUserKey []byte, hostKeyType proto_rexecd.KeyType) (*ssh.ClientConfig, error) {
+	key, _, _, _, err := ssh.ParseAuthorizedKey(publicHostKey)
 	if err != nil {
 		return &ssh.ClientConfig{}, err
 	}
 	hostKeyCallback := ssh.FixedHostKey(key)
-	authMethod, err := BuildAuthMethod(registerUserRequest.GetPrivateKey())
+	authMethod, err := BuildAuthMethod(privateUserKey)
 	if err != nil {
 		return &ssh.ClientConfig{}, err
 	}
-	keyType := proto_rexecd.KeyType_name[int32(registerHostRequest.KeyType)]
+	keyType := proto_rexecd.KeyType_name[int32(hostKeyType)]
 	return &ssh.ClientConfig{
-		User:              registerUserRequest.GetUsername(),
+		User:              username,
 		Auth:              []ssh.AuthMethod{authMethod},
 		HostKeyAlgorithms: []string{keyType},
 		HostKeyCallback:   hostKeyCallback,
