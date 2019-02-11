@@ -56,4 +56,10 @@ func TestMigrate(t *testing.T) {
 			}
 		}
 	})
+	t.Run("test _01", func(t *testing.T) {
+		_, err := db.Query("SELECT * FROM host;\n")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }

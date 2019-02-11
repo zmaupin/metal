@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/metal-go/metal/config"
+	"github.com/metal-go/metal/db/mysql"
 )
 
 const initDB = `
@@ -102,6 +103,9 @@ func (m *Migrate) Run() error {
 	}
 
 	for _, mig := range migrations[id:] {
+		if err := mysql.ExecuteSQL(m.ctx, db, mig); err != nil {
+			return err
+		}
 		if _, err := db.QueryContext(m.ctx, "INSERT INTO migration (data) VALUES (?);\n", []byte(mig)); err != nil {
 			return err
 		}
