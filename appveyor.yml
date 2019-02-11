@@ -6,10 +6,17 @@ stack: go 1.11
 services:
   - docker
 
+install:
+  - curl -kLO https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip
+  - unzip -p protoc-3.6.1-linux-x86_64.zip bin/protoc > protoc
+  - chmod +x protoc
+  - sudo mv protoc /usr/local/bin/protoc
+
 test_script:
   - mkdir -p $GOPATH/src/github.com/$APPVEYOR_REPO_NAME
   - cp -R ./* $GOPATH/src/github.com/$APPVEYOR_REPO_NAME/
   - cd $GOPATH/src/github.com/$APPVEYOR_REPO_NAME
+  - go get -u github.com/golang/protobuf/protoc-gen-go
   - go run tools/ci/main.go proto
   - go run tools/ci/main.go unit --timeout 60
   - go run tools/ci/main.go integration --timeout 300
