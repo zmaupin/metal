@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var integrationTimeoutSec int
 var baseIntegrationArgs = []string{"test", "-v"}
 
 type integrationConfig struct {
@@ -87,6 +88,7 @@ var integrationCmd = &cobra.Command{
 	Short: "Execute integration tests",
 	Long:  "Execute integration tests",
 	Run: func(cmd *cobra.Command, args []string) {
+		timeoutSec = integrationTimeoutSec
 		err := withTimeout(func(ctx context.Context, ch chan error) {
 			fmt.Println(integrationHeader)
 			for _, suite := range integrationSuite {
@@ -101,5 +103,7 @@ var integrationCmd = &cobra.Command{
 }
 
 func init() {
+	integrationCmd.Flags().IntVar(&integrationTimeoutSec, "timeout", 60, timeoutFlagDesc)
+	integrationCmd.Flags().StringVar(&pkg, "pkg", "", fmt.Sprintf("Target package. Options: %s\n", strings.Join(packages, " ")))
 	rootCmd.AddCommand(integrationCmd)
 }

@@ -40,7 +40,7 @@ func Execute() {
 }
 
 func heading(s string) string {
-	return fmt.Sprintf("******** %s ********\n\n", s)
+	return fmt.Sprintf("\n******** %s ********\n", s)
 }
 
 func notice(s string) string {
@@ -93,9 +93,4 @@ func withTimeout(worker worker) error {
 	case <-ctx.Done():
 		return errors.New("timeout exceeded")
 	}
-}
-
-func init() {
-	rootCmd.PersistentFlags().IntVar(&timeoutSec, "timeout", 60, timeoutFlagDesc)
-	rootCmd.PersistentFlags().StringVar(&pkg, "pkg", "", fmt.Sprintf("Target package. Options: %s\n", strings.Join(packages, " ")))
 }

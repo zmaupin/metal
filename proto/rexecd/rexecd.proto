@@ -4,62 +4,16 @@ package rexecd;
 
 service Rexecd {
   rpc Command(CommandRequest) returns (stream CommandResponse) {}
-  rpc RegisterHost(RegisterHostRequest) returns (RegisterHostResponse) {}
-  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+  rpc RegisterHost(HostRequest) returns (HostResponse) {}
+  rpc RegisterUser(UserRequest) returns (HostResponse) {}
 }
 
-message UserExecDataRequest {
-  string username = 1;
-  string host_id = 2;
-  int32 index = 3;
-}
-
-message UserExecDataResponse {
-  Line stdout_line = 1;
-  Line stderr_line = 2;
-  bool done = 3;
-}
-
-message Line {
-  bytes line = 1;
-  int64 time = 2;
-}
-
-message CommandRequest {
-  string cmd = 1;
-  string username = 2;
-  repeated HostConfig host_config = 3;
-  map<string,string> env = 4;
-}
-
-message Host {
-  string id = 1;
+message HostRequest {
+  uint64 id = 1;
   string fqdn = 2;
   uint32 port = 3;
-  bytes private_key = 4;
-  bytes public_key = 5;
-}
-
-message User {
-  string username = 1;
-  string first_name = 2;
-  string last_name = 3;
-  bool admin = 4;
-  bytes private_key = 5;
-  bytes public_key = 6;
-}
-
-message CommandResponse {
-  HostConfig host_config = 1;
-  bytes stdout = 2;
-  bytes stderr = 3;
-  Exit exit = 4;
-}
-
-
-message RegisterHostRequest {
-  string host_id = 1;
-  bytes public_key = 2;
+  bytes  private_key = 4;
+  bytes  public_key = 5;
   // Must be specified for host key verification. One of the following:
   //
   // ssh-rsa
@@ -71,15 +25,34 @@ message RegisterHostRequest {
   // ssh-rsa
   // rsa-sha2-256
   // rsa-sha2-512
-  string key_type = 3;
+  string key_type = 6;
 }
 
-message RegisterHostResponse {}
+message HostResponse {}
 
-message RegisterUserRequest {
+message UserRequest {
   string username = 1;
-  bytes private_key = 2;
-  bytes public_key = 3;
+  string first_name = 2;
+  string last_name = 3;
+  bool   admin = 4;
+  bytes  private_key = 5;
+  bytes  public_key = 6;
 }
 
-message RegisterUserResponse {}
+message UserResponse {}
+
+message CommandRequest {
+  uint64 id = 1;
+  string cmd = 2;
+  string username = 3;
+  uint64 host_id = 4;
+  uint64 start_timestamp = 5;
+}
+
+message CommandResponse {
+  uint64 id = 1;
+  bytes stdout = 2;
+  bytes stderr = 3;
+  uint64 timestamp = 4;
+  uint32 exit_code = 5;
+}
