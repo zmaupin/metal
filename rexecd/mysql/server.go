@@ -2,7 +2,9 @@ package mysql
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"net"
 
 	_ "github.com/go-sql-driver/mysql" // driver
@@ -16,39 +18,53 @@ import (
 	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
 )
 
-// MySQL driver
-type MySQL struct{}
+// Server driver
+type Server struct {
+	db *sql.DB
+}
 
 // New pointer to MySQL
-func New() *MySQL {
-	return &MySQL{}
+func New() *Server {
+	return &Server{}
 }
 
 // Command executes a command
-func (m *MySQL) Command(c *proto_rexecd.CommandRequest, s proto_rexecd.Rexecd_CommandServer) error {
+func (m *Server) Command(c *proto_rexecd.CommandRequest, s proto_rexecd.Rexecd_CommandServer) error {
 	return nil
 }
 
 // RegisterHost registers a Host
-func (m *MySQL) RegisterHost(ctx context.Context, r *proto_rexecd.RegisterHostRequest) (
+func (m *Server) RegisterHost(ctx context.Context, r *proto_rexecd.RegisterHostRequest) (
 	*proto_rexecd.RegisterHostResponse, error,
 ) {
-	return &proto_rexecd.RegisterHostResponse{}, nil
+	host := NewHost(m.db, r.GetFqdn(), r.GetPort(), r.GetPrivateKey(), r.GetPublicKey(), r.GetKeyType())
+	id, err := host.Create(ctx)
+	return &proto_rexecd.RegisterHostResponse{Id: id}, err
 }
 
 // RegisterUser registers a User
-func (m *MySQL) RegisterUser(ctx context.Context, r *proto_rexecd.RegisterUserRequest) (
+func (m *Server) RegisterUser(ctx context.Context, r *proto_rexecd.RegisterUserRequest) (
 	*proto_rexecd.RegisterUserResponse, error,
 ) {
-	return &proto_rexecd.RegisterUserResponse{}, nil
+	u := NewUser(m.db, r.GetUsername(), r.GetPrivateKey(), r.GetPublicKey(),
+		WithUserFirstName(r.GetFirstName()), WithUserLastName(r.GetLastName()),
+		WithUserAdmin(r.GetAdmin()))
+	err := u.Create(ctx)
+	return &proto_rexecd.RegisterUserResponse{}, err
 }
 
 // Run starts the server
-func (m *MySQL) Run() error {
+func (m *Server) Run() error {
 	migrate := migration.New()
 	if err := migrate.Run(); err != nil {
 		return err
 	}
+	dsn := config.RexecdGlobal.DataSourceName + "rexecd"
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	m.db = db
 	network := fmt.Sprintf("%s:%s", config.RexecdGlobal.Address, config.RexecdGlobal.Port)
 	lis, err := net.Listen("tcp", network)
 	if err != nil {

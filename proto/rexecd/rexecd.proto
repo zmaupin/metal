@@ -9,26 +9,27 @@ service Rexecd {
 }
 
 message RegisterHostRequest {
-  uint64 id = 1;
-  string fqdn = 2;
-  uint32 port = 3;
-  bytes  private_key = 4;
-  bytes  public_key = 5;
-  // Must be specified for host key verification. One of the following:
-  //
-  // ssh-rsa
-  // ssh-dss
-  // ecdsa-sha2-nistp256
-  // ecdsa-sha2-nistp384
-  // ecdsa-sha2-nistp521
-  // ssh-ed25519
-  // ssh-rsa
-  // rsa-sha2-256
-  // rsa-sha2-512
-  string key_type = 6;
+  string fqdn = 1;
+  int64 port = 2;
+  bytes  private_key = 3;
+  bytes  public_key = 4;
+  KeyType key_type = 5;
 }
 
-message RegisterHostResponse {}
+enum KeyType {
+  ssh_rsa = 0;
+  rsa_sha2_256 = 1;
+  rsa_sha2_512 = 2;
+  ssh_dsa = 3;
+  ecdsa_sha2_nistp256 = 4;
+  ecdsa_sha2_nistp384 = 5;
+  ecdsa_sha2_nistp521 = 6;
+  ssh_ed25519 = 7;
+}
+
+message RegisterHostResponse {
+  int64 id = 1;
+}
 
 message RegisterUserRequest {
   string username = 1;
@@ -42,7 +43,7 @@ message RegisterUserRequest {
 message RegisterUserResponse {}
 
 message CommandRequest {
-  uint64 id = 1;
+  int64 id = 1;
   string cmd = 2;
   string username = 3;
   uint64 host_id = 4;
@@ -50,9 +51,9 @@ message CommandRequest {
 }
 
 message CommandResponse {
-  uint64 id = 1;
+  int64 id = 1;
   bytes stdout = 2;
   bytes stderr = 3;
-  uint64 timestamp = 4;
-  uint32 exit_code = 5;
+  int64 timestamp = 4;
+  int64 exit_code = 5;
 }

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/metal-go/metal/config"
 	"github.com/metal-go/metal/db/mysql"
 )
@@ -17,7 +19,8 @@ const initMigrationsTable = `
 CREATE TABLE IF NOT EXISTS migration (
   id SERIAL,
 	data BLOB,
-  PRIMARY KEY (id));
+  PRIMARY KEY (id)
+);
 `
 
 var migrations = []string{}
@@ -65,17 +68,19 @@ func (m *Migrate) Run() error {
 	if _, err = db.ExecContext(m.ctx, initDB); err != nil {
 		return err
 	}
+	db.Close()
 
 	db, err = sql.Open("mysql", config.RexecdGlobal.DataSourceName+"rexecd")
 	if err != nil {
 		return err
 	}
+	defer db.Close()
 
 	if _, err = db.ExecContext(m.ctx, initMigrationsTable); err != nil {
 		return err
 	}
 
-	rows, err := db.QueryContext(m.ctx, "SELECT * FROM migration;\n")
+	rows, err := db.QueryContext(m.ctx, "SELECT id FROM migration ORDER BY id DESC LIMIT 1;")
 	if err != nil {
 		return err
 	}
@@ -83,17 +88,7 @@ func (m *Migrate) Run() error {
 
 	var id int
 	for rows.Next() {
-		var success int
-		if err := rows.Scan(&id, &success); err != nil {
-			return err
-		}
-		if success == 1 {
-			continue
-		}
-		if _, err := db.ExecContext(m.ctx, migrations[id-1]); err != nil {
-			return err
-		}
-		if _, err := db.ExecContext(m.ctx, "INSERT INTO migration (data) VALUES (?);\n", []byte(migrations[id-1])); err != nil {
+		if err := rows.Scan(&id); err != nil {
 			return err
 		}
 	}
@@ -110,6 +105,7 @@ func (m *Migrate) Run() error {
 			return err
 		}
 	}
+	log.Info("databse initialized")
 	return nil
 }
 

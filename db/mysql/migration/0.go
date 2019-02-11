@@ -4,10 +4,11 @@ var _0 = `
 # entity set
 CREATE TABLE IF NOT EXISTS host (
   id          SERIAL,
-  fqdn        VARCHAR(63) NOT NULL,
+  fqdn        VARCHAR(63) NOT NULL UNIQUE,
   port        SMALLINT UNSIGNED,
   private_key BLOB,
   public_key  BLOB,
+  key_type    VARCHAR(30),
 
   PRIMARY KEY (id),
   INDEX USING BTREE (fqdn)

@@ -193,10 +193,11 @@ func BuildClientConfig(registerUserRequest proto_rexecd.RegisterUserRequest, reg
 	if err != nil {
 		return &ssh.ClientConfig{}, err
 	}
+	keyType := proto_rexecd.KeyType_name[int32(registerHostRequest.KeyType)]
 	return &ssh.ClientConfig{
 		User:              registerUserRequest.GetUsername(),
 		Auth:              []ssh.AuthMethod{authMethod},
-		HostKeyAlgorithms: []string{registerHostRequest.KeyType},
+		HostKeyAlgorithms: []string{keyType},
 		HostKeyCallback:   hostKeyCallback,
 	}, nil
 }
