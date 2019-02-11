@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS command_user (
   id       SERIAL,
   username VARCHAR(30) NOT NULL,
 
-  FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,
+  FOREIGN KEY (id)       REFERENCES command(id)    ON DELETE CASCADE,
   FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE,
   PRIMARY KEY (id)
 );
@@ -69,9 +69,8 @@ CREATE TABLE IF NOT EXISTS command_host (
   id      SERIAL,
   host_id BIGINT UNSIGNED NOT NULL,
 
-  FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,
-  FOREIGN KEY (host_id) REFERENCES host(id) ON DELETE CASCADE,
+  FOREIGN KEY (id)      REFERENCES command(id) ON DELETE CASCADE,
+  FOREIGN KEY (host_id) REFERENCES host(id)    ON DELETE CASCADE,
   PRIMARY KEY (id)
 );
-
 `
