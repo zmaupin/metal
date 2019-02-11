@@ -30,14 +30,14 @@ CREATE TABLE IF NOT EXISTS command_stdout (
   id SERIAL,
   line BLOB NOT NULL,
   FOREIGN KEY id REFERENCES command(id) ON DELETE CASCADE,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id, line)
 );
 
 CREATE TABLE IF NOT EXISTS command_stderr (
   id SERIAL,
   line BLOB NOT NULL,
   FOREIGN KEY id REFERENCES command (id) ON DELETE CASCADE,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id, line)
 );
 
 CREATE TABLE IF NOT EXISTS user_command (
