@@ -3,20 +3,18 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
 )
 
 // Host model
 type Host struct {
-	ID         int64
-	FQDN       string
-	Port       int64
-	PrivateKey []byte
-	PublicKey  []byte
-	KeyType    proto_rexecd.KeyType
-	db         *sql.DB
+	ID        int64
+	FQDN      string
+	Port      int64
+	PublicKey []byte
+	KeyType   proto_rexecd.KeyType
+	db        *sql.DB
 }
 
 // HostOpt is an option for a new Host
@@ -30,14 +28,13 @@ func WithHostID(id int64) HostOpt {
 }
 
 // NewHost returns a new host
-func NewHost(db *sql.DB, fqdn string, port int64, privateKey []byte, publicKey []byte, keyType proto_rexecd.KeyType, opts ...HostOpt) *Host {
+func NewHost(db *sql.DB, fqdn string, port int64, publicKey []byte, keyType proto_rexecd.KeyType, opts ...HostOpt) *Host {
 	h := &Host{
-		FQDN:       fqdn,
-		Port:       port,
-		PrivateKey: privateKey,
-		PublicKey:  publicKey,
-		KeyType:    keyType,
-		db:         db,
+		FQDN:      fqdn,
+		Port:      port,
+		PublicKey: publicKey,
+		KeyType:   keyType,
+		db:        db,
 	}
 	for _, fn := range opts {
 		fn(h)
@@ -48,10 +45,10 @@ func NewHost(db *sql.DB, fqdn string, port int64, privateKey []byte, publicKey [
 // Create a new Host
 func (h *Host) Create(ctx context.Context) (id int64, err error) {
 	statement := `
-  INSERT INTO host (fqdn, port, private_key, public_key) VALUES (?, ?, ?, ?);
+  INSERT INTO host (fqdn, port, public_key, key_type) VALUES (?, ?, ?, ?);
   `
 	result, err := h.db.ExecContext(
-		ctx, statement, h.FQDN, h.Port, h.PrivateKey, h.PublicKey,
+		ctx, statement, h.FQDN, h.Port, h.PublicKey,
 		proto_rexecd.KeyType_name[int32(h.KeyType)])
 
 	if err != nil {
@@ -63,23 +60,14 @@ func (h *Host) Create(ctx context.Context) (id int64, err error) {
 // Read gets Host info
 func (h *Host) Read(ctx context.Context, id int64) (*Host, error) {
 	query := `
-  SELECT (fqdn, port, private_key, public_key) FROM host WHERE id = ?;
+  SELECT (fqdn, port, public_key) FROM host WHERE id = ?;
   `
-	rows, err := h.db.QueryContext(ctx, query, id)
-	if err != nil {
-		return &Host{}, err
-	}
-	for rows.Next() {
-		var fqdn string
-		var port int64
-		var privateKey []byte
-		var publicKey []byte
+	row := h.db.QueryRowContext(ctx, query, id)
 
-		err = rows.Scan(&fqdn, &port, &privateKey, &publicKey)
-		if err != nil {
-			return &Host{}, err
-		}
-		return &Host{ID: id, FQDN: fqdn, PrivateKey: privateKey, PublicKey: publicKey}, nil
-	}
-	return &Host{}, fmt.Errorf("host not found for id %d", id)
+	var fqdn string
+	var port int64
+	var publicKey []byte
+
+	err := row.Scan(&fqdn, &port, &publicKey)
+	return &Host{ID: id, FQDN: fqdn, PublicKey: publicKey}, err
 }
