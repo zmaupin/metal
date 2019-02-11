@@ -15,7 +15,7 @@ CREATE DATABASE IF NOT EXISTS rexecd;
 const initMigrationsTable = `
 CREATE TABLE IF NOT EXISTS migration (
   id SERIAL,
-  success BOOLEAN,
+	data BLOB,
   PRIMARY KEY (id));
 `
 
@@ -92,19 +92,19 @@ func (m *Migrate) Run() error {
 		if _, err := db.ExecContext(m.ctx, migrations[id-1]); err != nil {
 			return err
 		}
-		db.QueryContext(m.ctx, "INSERT INTO migration (id, success) VALUES (?, TRUE);\n", id)
+		if _, err := db.ExecContext(m.ctx, "INSERT INTO migration (data) VALUES (?);\n", []byte(migrations[id-1])); err != nil {
+			return err
+		}
 	}
 
 	if id == len(migrations) {
 		return nil
 	}
 
-	for i, mig := range migrations[id:] {
-		db.QueryContext(m.ctx, "INSERT INTO migration VALUES (FALSE);\n")
-		if _, err := db.ExecContext(m.ctx, mig); err != nil {
+	for _, mig := range migrations[id:] {
+		if _, err := db.QueryContext(m.ctx, "INSERT INTO migration (data) VALUES (?);\n", []byte(mig)); err != nil {
 			return err
 		}
-		db.QueryContext(m.ctx, "INSERT INTO migration (id, success) VALUES (?, TRUE);\n", i)
 	}
 	return nil
 }

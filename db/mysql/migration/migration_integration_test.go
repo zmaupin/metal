@@ -22,17 +22,38 @@ func TestMigrate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rows, err := db.Query("SELECT COUNT(id) FROM migration;\n")
-	defer rows.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var count int
-	rows.Next()
-	if err = rows.Scan(&count); err != nil {
-		t.Fatal(err)
-	}
-	if count != 1 {
-		t.Errorf("expected count to be 1, got %d", count)
-	}
+	t.Run("test_count", func(t *testing.T) {
+		rows, err := db.Query("SELECT COUNT(*) FROM migration;\n")
+		defer rows.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		var count int
+		for rows.Next() {
+			if err = rows.Scan(&count); err != nil {
+				t.Fatal(err)
+			}
+			if count != 1 {
+				t.Errorf("expected count to be 1, got %d", count)
+			}
+		}
+	})
+	t.Run("test_migration_data", func(t *testing.T) {
+		rows, err := db.Query("SELECT id, data FROM migration;\n")
+		if err != nil {
+			t.Fatal(err)
+		}
+		for rows.Next() {
+			var id int
+			var data []byte
+
+			if err := rows.Scan(&id, &data); err != nil {
+				t.Fatal(err)
+			}
+
+			if string(data) != _0 {
+				t.Errorf("expected %s, got %s", _0, string(data))
+			}
+		}
+	})
 }
