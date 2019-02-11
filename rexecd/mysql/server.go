@@ -37,7 +37,7 @@ func (m *Server) Command(c *proto_rexecd.CommandRequest, s proto_rexecd.Rexecd_C
 func (m *Server) RegisterHost(ctx context.Context, r *proto_rexecd.RegisterHostRequest) (
 	*proto_rexecd.RegisterHostResponse, error,
 ) {
-	host := NewHost(m.db, r.GetFqdn(), r.GetPort(), r.GetPrivateKey(), r.GetPublicKey(), r.GetKeyType())
+	host := NewHost(m.db, r.GetFqdn(), r.GetPort(), r.GetPublicKey(), r.GetKeyType())
 	id, err := host.Create(ctx)
 	return &proto_rexecd.RegisterHostResponse{Id: id}, err
 }
