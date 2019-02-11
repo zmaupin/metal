@@ -5,6 +5,7 @@ var _0 = `
 CREATE TABLE IF NOT EXISTS host (
   id SERIAL,
   fqdn VARCHAR(63) NOT NULL,
+  port UNSIGNED SMALLINT,
   private_key BLOB,
   public_key BLOB,
   PRIMARY KEY (id)
