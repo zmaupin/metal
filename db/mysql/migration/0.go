@@ -1,6 +1,7 @@
 package migration
 
 var _0 = `
+# entity set
 CREATE TABLE IF NOT EXISTS host (
   id SERIAL,
   fqdn VARCHAR(63) NOT NULL,
@@ -9,6 +10,7 @@ CREATE TABLE IF NOT EXISTS host (
   PRIMARY KEY (id)
 );
 
+# entity set
 CREATE TABLE IF NOT EXISTS user (
   username VARCHAR(30) NOT NULL UNIQUE,
   first_name VARCHAR(30),
@@ -19,6 +21,7 @@ CREATE TABLE IF NOT EXISTS user (
   PRIMARY KEY (username)
 );
 
+# entity set
 CREATE TABLE IF NOT EXISTS command (
   id SERIAL,
   cmd TEXT NOT NULL,
@@ -26,6 +29,7 @@ CREATE TABLE IF NOT EXISTS command (
   PRIMARY KEY (id)
 );
 
+# multi-valued attribute
 CREATE TABLE IF NOT EXISTS command_stdout (
   id SERIAL,
   line BLOB NOT NULL,
@@ -33,6 +37,7 @@ CREATE TABLE IF NOT EXISTS command_stdout (
   PRIMARY KEY (id, line)
 );
 
+# multi-valused attribute
 CREATE TABLE IF NOT EXISTS command_stderr (
   id SERIAL,
   line BLOB NOT NULL,
@@ -40,7 +45,8 @@ CREATE TABLE IF NOT EXISTS command_stderr (
   PRIMARY KEY (id, line)
 );
 
-CREATE TABLE IF NOT EXISTS user_command (
+# relationship set, many-to-one
+CREATE TABLE IF NOT EXISTS command_user (
   id SERIAL,
   username VARCHAR(30) NOT NULL,
   FOREIGN KEY id REFERENCES command (id) ON DELETE CASCADE,
@@ -48,7 +54,8 @@ CREATE TABLE IF NOT EXISTS user_command (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS host_command (
+# relationship_set, many-to-one
+CREATE TABLE IF NOT EXISTS command_host (
   id SERIAL,
   host_id BIGINT NOT NULL,
   FOREIGN KEY id REFERENCES command (id) ON DELETE CASCADE,
