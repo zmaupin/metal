@@ -56,8 +56,8 @@ func (u *User) Create(ctx context.Context) error {
 		return err
 	}
 	statement := `
-  INSERT INTO user (username, first_name, last_name, admin)
-  VALUES (?, ?, ?, ?, ?, ?);
+	INSERT INTO user (username, first_name, last_name, admin)
+	VALUES (?, ?, ?, ?, ?, ?);
   `
 	_, err := u.db.ExecContext(ctx, statement, u.Username, u.FirstName, u.LastName, u.Admin)
 	return err
@@ -70,9 +70,9 @@ func (u *User) Read(ctx context.Context, username string) (*User, error) {
 	var lastName string
 
 	query := `
-  SELECT (username, first_name, last_name, admin)
-  FROM user
-  WHERE username = ?;
+	SELECT (username, first_name, last_name, admin)
+	FROM user
+	WHERE username = ?;
   `
 	row := u.db.QueryRowContext(ctx, query, username)
 	err := row.Scan()

@@ -126,24 +126,25 @@ func (m *Server) exitStatus(ctx context.Context, command *Command, host *Host, e
 		hostFQDN = host.FQDN
 	}
 
-	log.WithFields(log.Fields{
+	logFields := log.Fields{
 		"cmd_id":    id,
 		"cmd":       commandRequest.GetCmd(),
 		"username":  commandRequest.GetUsername(),
 		"host":      hostFQDN,
 		"exit_code": exitCode,
-	}).Error("exec failed")
+	}
 
-	if err = command.SetExitCode(ctx, exitCode); err != nil {
-		log.WithFields(log.Fields{
-			"cmd_id":    id,
-			"cmd":       commandRequest.GetCmd(),
-			"username":  commandRequest.GetUsername(),
-			"host":      hostFQDN,
-			"exit_code": exitCode,
-		}).Error("failed to update exit_code for command")
+	if exitCode == 0 {
+		log.WithFields(logFields).Info("command execution succeeded")
+	} else {
+		log.WithFields(logFields).Info("command execution failed")
+	}
+
+	if e := command.SetExitCode(ctx, exitCode); err != nil {
+		log.WithFields(logFields).Error(e)
 	}
 	wg.Done()
+
 	return &proto_rexecd.CommandResponse{
 		Id:        id,
 		ErrorMsg:  err.Error(),

@@ -72,7 +72,7 @@ func NewHost(db *sql.DB, opts ...HostOpt) *Host {
 // Create a new Host
 func (h *Host) Create(ctx context.Context) (id int64, err error) {
 	statement := `
-  INSERT INTO host (fqdn, port, public_key, key_type) VALUES (?, ?, ?, ?);
+	INSERT INTO host (fqdn, port, public_key, key_type) VALUES (?, ?, ?, ?);
   `
 	result, err := h.db.ExecContext(
 		ctx, statement, h.FQDN, h.Port, h.PublicKey,
@@ -87,7 +87,7 @@ func (h *Host) Create(ctx context.Context) (id int64, err error) {
 // Read gets Host info
 func (h *Host) Read(ctx context.Context, fqdn string) error {
 	query := `
-  SELECT (id, fqdn, port, public_key, key_type) FROM host WHERE fqdn = ?;
+	SELECT (id, fqdn, port, public_key, key_type) FROM host WHERE fqdn = ?;
   `
 	row := h.db.QueryRowContext(ctx, query, h.FQDN)
 

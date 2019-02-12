@@ -52,8 +52,8 @@ func NewCommand(db *sql.DB, cmd string, username string, hostID, timestamp int64
 // Create a Command record
 func (c *Command) Create(ctx context.Context) error {
 	query := `
-  INSERT INTO command (cmd, username, host_id, timestamp)
-  VALUES (?, ?, ?, ?, ?, ?);
+	INSERT INTO command (cmd, username, host_id, timestamp)
+	VALUES (?, ?, ?, ?, ?, ?);
   `
 	result, err := c.db.ExecContext(ctx, query, c.Cmd, c.Username, c.HostID, c.Timestamp)
 	if err != nil {
