@@ -10,8 +10,6 @@ import (
 
 	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
 	"golang.org/x/crypto/ssh"
-
-	"github.com/metal-go/metal/util/pipeline"
 )
 
 // Server implements proto_rexecd.RexecdServer

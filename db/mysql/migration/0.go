@@ -37,15 +37,19 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE TABLE IF NOT EXISTS command (
   id        SERIAL,
   cmd       TEXT NOT NULL,
+  username  VARCHAR(30) UNIQUE NOT NULL,
+  host_id   BIGINT UNSIGNED NOT NULL,
   timestamp int UNSIGNED NOT NULL,
   exit_code SMALLINT,
 
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (username) REFERENCES user(username) ON CASCADE DELETE,
+  FOREIGN KEY (host_id)  REFERENCES host(id)       ON CASCADE DELETE
 );
 
 # multi-valued attribute
 CREATE TABLE IF NOT EXISTS command_stdout (
-  id        SERIAL,
+  id        BIGINT UNSIGNED NOT NULL,
   timestamp int UNSIGNED NOT NULL,
   line      BLOB NOT NULL,
 
@@ -55,30 +59,11 @@ CREATE TABLE IF NOT EXISTS command_stdout (
 
 # multi-valued attribute
 CREATE TABLE IF NOT EXISTS command_stderr (
-  id        SERIAL,
+  id        BIGINT UNSIGNED NOT NULL,
   timestamp int UNSIGNED NOT NULL,
   line      BLOB NOT NULL,
 
   FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,
   PRIMARY KEY (id, timestamp)
-);
-
-# relationship set, many-to-one
-CREATE TABLE IF NOT EXISTS command_user (
-  id       SERIAL,
-  username VARCHAR(30) NOT NULL,
-
-  FOREIGN KEY (id)       REFERENCES command(id)    ON DELETE CASCADE,
-  FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS command_host (
-  id      SERIAL,
-  host_id BIGINT UNSIGNED NOT NULL,
-
-  FOREIGN KEY (id)      REFERENCES command(id) ON DELETE CASCADE,
-  FOREIGN KEY (host_id) REFERENCES host(id)    ON DELETE CASCADE,
-  PRIMARY KEY (id)
 );
 `

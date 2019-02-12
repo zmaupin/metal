@@ -40,31 +40,32 @@ func (m *Server) Command(ctx context.Context, c *proto_rexecd.CommandRequest, s 
 	}).Info("command request submitted")
 
 	errorChan := make(chan error)
-	run := func() chan bool {
-		doneChan := make(chan bool)
-		go func() {
-			defer close(errorChan)
-			t := time.Now()
-			wg := &sync.WaitGroup{}
-			for _, hostConnect := range c.GetHostConnect() {
-				wg.Add(1)
-				go m.command(ctx, hostConnect, c, s, wg, t, errorChan)
-			}
-			wg.Wait()
-			doneChan <- true
-			close(doneChan)
-		}()
-		return doneChan
-	}
-
 	select {
-	case <-run():
+	case <-m.commandScheduler(ctx, c, s, errorChan):
 		return nil
 	case err := <-errorChan:
 		return err
 	case <-ctx.Done():
 		return errors.New("context timeout exceeded")
 	}
+}
+
+func (m *Server) commandScheduler(ctx context.Context, c *proto_rexecd.CommandRequest, s proto_rexecd.Rexced_CommandServer, errorChan chan error) {
+	doneChan := make(chan bool)
+	go func() {
+		defer close(errorChan)
+		defer close(doneChan)
+
+		t := time.Now()
+		wg := &sync.WaitGroup{}
+		for _, hostConnect := range c.GetHostConnect() {
+			wg.Add(1)
+			go m.command(ctx, hostConnect, c, s, wg, t, errorChan)
+		}
+		wg.Wait()
+		doneChan <- true
+	}()
+	return doneChan
 }
 
 func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConnect,
