@@ -51,6 +51,7 @@ message CommandRequest {
   string username = 3;
   repeated HostConnect host_connect = 4;
   uint64 start_timestamp = 5;
+  bool distribute = 6;
 }
 
 message CommandResponse {
