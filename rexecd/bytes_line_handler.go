@@ -1,23 +1,12 @@
 package rexecd
 
 import (
-	"database/sql"
-
-	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
-	"github.com/metal-go/metal/rexecd/mysql"
+	"context"
 )
 
 // BytesLineHandler handles a []byte
 type BytesLineHandler interface {
-	Handle(b []byte, ch chan error)
-}
-
-// BytesLineHandlerFunc enables functions to implement CommandResponseHandler
-type BytesLineHandlerFunc func(b []byte, ch chan error)
-
-// Handle satisfies CommandResponseHandler
-func (blhf BytesLineHandlerFunc) Handle(c *proto_rexecd.CommandResponse, ch chan error) {
-	blhf(c, ch)
+	Handle(ctx context.Context, b []byte) error
 }
 
 // BytesLineMiddleware enables response wrapping
@@ -35,10 +24,4 @@ func NewWrappedBytesLineHandler(h BytesLineHandler, stages ...BytesLineMiddlewar
 		last = stages[i].Wrap(last)
 	}
 	return last
-}
-
-// DefaultBytesLineHandler handles
-type DefaultBytesLineHandler struct {
-	command *mysql.Command
-	db      *sql.DB
 }

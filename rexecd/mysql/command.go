@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 // Command model
@@ -13,6 +14,7 @@ type Command struct {
 	HostID    int64
 	Timestamp int64
 	ExitCode  int64
+	db        *sql.DB
 }
 
 // CommandOpt is an option for a NewCommand
@@ -33,9 +35,11 @@ func WithExitCode(exitCode int64) CommandOpt {
 }
 
 // NewCommand returns a new Command
-func NewCommand(db *sql.DB, cmd string, username, hostID string, timestamp int64, opts ...CommandOPt) *Command {
+func NewCommand(db *sql.DB, cmd string, username string, hostID, timestamp int64, opts ...CommandOpt) *Command {
 	c := &Command{
 		Cmd:       cmd,
+		Username:  username,
+		HostID:    hostID,
 		Timestamp: timestamp,
 		db:        db,
 	}
@@ -51,11 +55,40 @@ func (c *Command) Create(ctx context.Context) error {
   INSERT INTO command (cmd, username, host_id, timestamp)
   VALUES (?, ?, ?, ?, ?, ?);
   `
-	result, err := db.ExecContext(ctx, query, c.Cmd, c.Username, c.HostID, c.Timestamp)
+	result, err := c.db.ExecContext(ctx, query, c.Cmd, c.Username, c.HostID, c.Timestamp)
 	if err != nil {
 		return err
 	}
 	id, err := result.LastInsertId()
 	c.ID = id
+	return err
+}
+
+// AddStdoutLine adds line to command_stdout
+func (c *Command) AddStdoutLine(ctx context.Context, b []byte) error {
+	statement := `
+	INSERT INTO command_stdout (id, timestamp, line)
+	VALUES (?, ?, ?);
+	`
+	_, err := c.db.ExecContext(ctx, statement, c.ID, time.Now().Unix(), b)
+	return err
+}
+
+// AddStderrLine adds line to command_stderr
+func (c *Command) AddStderrLine(ctx context.Context, b []byte) error {
+	statement := `
+	INSERT INTO command_stderr (id, timestamp, line)
+	VALUES (?, ?, ?)
+	`
+	_, err := c.db.ExecContext(ctx, statement, c.ID, time.Now().Unix(), b)
+	return err
+}
+
+// SetExitCode sets the exit code on command
+func (c *Command) SetExitCode(ctx context.Context, exitCode int64) error {
+	statement := `
+	INSERT INTO command (exit_code) VALUES (?) WHERE id = ?;
+	`
+	_, err := c.db.ExecContext(ctx, statement, exitCode, c.ID)
 	return err
 }

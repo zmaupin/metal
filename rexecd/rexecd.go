@@ -2,6 +2,7 @@ package rexecd
 
 import (
 	"bufio"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -79,88 +80,69 @@ func (s SSHSessionBuilder) Build() (*ssh.Session, error) {
 
 // ExecRunner runs a command on a remote host
 type ExecRunner struct {
-	cmd            string
-	sshSession     *ssh.Session
-	stdoutPipeline pipeline.Bytes
-	stderrPipeline pipeline.Bytes
+	cmd           string
+	sshSession    *ssh.Session
+	stdoutHandler BytesLineHandler
+	stderrHandler BytesLineHandler
 }
 
 // ExecRunnerOpt is an option for an ExecRunner
 type ExecRunnerOpt func(*ExecRunner)
 
-// ExecRunnerWithStdoutPipeline adds a StdoutPipeline to an ExecRunner
-func ExecRunnerWithStdoutPipeline(p pipeline.Bytes) ExecRunnerOpt {
-	return func(e *ExecRunner) {
-		e.stdoutPipeline = p
-	}
-}
-
-// ExecRunnerWithStderrPipeline adds a StderrPipeline to an ExecRunner
-func ExecRunnerWithStderrPipeline(p pipeline.Bytes) ExecRunnerOpt {
-	return func(e *ExecRunner) {
-		e.stderrPipeline = p
-	}
-}
-
 // NewExecRunner returns a pointer to an ExecRunner
-func NewExecRunner(cmd string, sshSession *ssh.Session, opts ...ExecRunnerOpt) *ExecRunner {
+func NewExecRunner(cmd string, sshSession *ssh.Session, stdoutHandler BytesLineHandler, stderrHandler BytesLineHandler, opts ...ExecRunnerOpt) *ExecRunner {
 	runner := &ExecRunner{
-		cmd:        cmd,
-		sshSession: sshSession,
+		cmd:           cmd,
+		sshSession:    sshSession,
+		stdoutHandler: stdoutHandler,
+		stderrHandler: stderrHandler,
 	}
 
 	for _, fn := range opts {
 		fn(runner)
 	}
 
-	if runner.stdoutPipeline == nil {
-		runner.stdoutPipeline = pipeline.BytesNoOp
-	}
-
-	if runner.stderrPipeline == nil {
-		runner.stderrPipeline = pipeline.BytesNoOp
-	}
 	return runner
 }
 
 // Run executes the command, feeding stdout into the stdout pipeline and stderr
 // into the stderr pipeline
-func (e *ExecRunner) Run() (statusCode int32, err error) {
+func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 	defer e.sshSession.Close()
 	// Setup stdout and stderr readers and scanners
 	outReader, err := e.sshSession.StdoutPipe()
 	if err != nil {
-		return ExitUnknown, err
+		return 1, err
 	}
 	errReader, err := e.sshSession.StderrPipe()
 	if err != nil {
-		return ExitUnknown, err
+		return 1, err
 	}
 	outScanner := bufio.NewScanner(outReader)
 	errScanner := bufio.NewScanner(errReader)
 
 	// Feed bytes of lines to the given pipeline
-	feeder := func(scanner *bufio.Scanner, pipeline pipeline.Bytes) {
+	feeder := func(scanner *bufio.Scanner, handler BytesLineHandler) {
 		for scanner.Scan() {
 			line := append(scanner.Bytes(), byte('\n'))
-			pipeline(line)
+			handler.Handle(ctx, line)
 		}
 	}
-	go func() { feeder(outScanner, e.stdoutPipeline) }()
-	go func() { feeder(errScanner, e.stderrPipeline) }()
+	go func() { feeder(outScanner, e.stdoutHandler) }()
+	go func() { feeder(errScanner, e.stderrHandler) }()
 
 	// Run it
 	err = e.sshSession.Run(e.cmd)
 
 	// Check for errors
 	if err == nil {
-		return int32(0), nil
+		return int64(0), nil
 	}
 	exitErr, ok := err.(*ssh.ExitError)
 	if ok {
-		return int32(exitErr.Waitmsg.ExitStatus()), nil
+		return int64(exitErr.Waitmsg.ExitStatus()), nil
 	}
-	return ExitUnknown, err
+	return 1, err
 }
 
 // BuildAuthMethod returns an ssh.AuthMethod from the given private key presented

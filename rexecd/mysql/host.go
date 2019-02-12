@@ -64,7 +64,7 @@ func NewHost(db *sql.DB, opts ...HostOpt) *Host {
 		fn(h)
 	}
 	if h.Port == "" {
-		h.Port == "22"
+		h.Port = "22"
 	}
 	return h
 }

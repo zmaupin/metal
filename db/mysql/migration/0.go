@@ -39,18 +39,18 @@ CREATE TABLE IF NOT EXISTS command (
   cmd       TEXT NOT NULL,
   username  VARCHAR(30) UNIQUE NOT NULL,
   host_id   BIGINT UNSIGNED NOT NULL,
-  timestamp int UNSIGNED NOT NULL,
+  timestamp BIGINT UNSIGNED NOT NULL,
   exit_code SMALLINT,
 
   PRIMARY KEY (id),
-  FOREIGN KEY (username) REFERENCES user(username) ON CASCADE DELETE,
-  FOREIGN KEY (host_id)  REFERENCES host(id)       ON CASCADE DELETE
+  FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE,
+  FOREIGN KEY (host_id)  REFERENCES host(id)       ON DELETE CASCADE
 );
 
 # multi-valued attribute
 CREATE TABLE IF NOT EXISTS command_stdout (
   id        BIGINT UNSIGNED NOT NULL,
-  timestamp int UNSIGNED NOT NULL,
+  timestamp BIGINT UNSIGNED NOT NULL,
   line      BLOB NOT NULL,
 
   FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS command_stdout (
 # multi-valued attribute
 CREATE TABLE IF NOT EXISTS command_stderr (
   id        BIGINT UNSIGNED NOT NULL,
-  timestamp int UNSIGNED NOT NULL,
+  timestamp BIGINT UNSIGNED NOT NULL,
   line      BLOB NOT NULL,
 
   FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,
