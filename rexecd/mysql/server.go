@@ -181,6 +181,7 @@ func (m *Server) Run() error {
 	}
 	dsn := config.RexecdGlobal.DataSourceName + "rexecd"
 	db, err := sql.Open("mysql", dsn)
+	defer db.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -193,6 +194,5 @@ func (m *Server) Run() error {
 	server := grpc.NewServer()
 	proto_rexecd.RegisterRexecdServer(server, m)
 	grpc_health_v1.RegisterHealthServer(server, health.NewServer())
-	server.Serve(lis)
-	return nil
+	return server.Serve(lis)
 }
