@@ -11,7 +11,7 @@ import (
 type Host struct {
 	ID        int64
 	FQDN      string
-	Port      int64
+	Port      string
 	PublicKey []byte
 	KeyType   proto_rexecd.KeyType
 	db        *sql.DB
@@ -20,6 +20,13 @@ type Host struct {
 // HostOpt is an option for a new Host
 type HostOpt func(*Host)
 
+// WithHostFQDN sets the fqdn on the Host
+func WithHostFQDN(fqdn string) HostOpt {
+	return func(h *Host) {
+		h.FQDN = fqdn
+	}
+}
+
 // WithHostID returns a HostOpt with a configured ID
 func WithHostID(id int64) HostOpt {
 	return func(h *Host) {
@@ -27,17 +34,37 @@ func WithHostID(id int64) HostOpt {
 	}
 }
 
+// WithHostPort adds the Port to the Host
+func WithHostPort(port string) HostOpt {
+	return func(h *Host) {
+		h.Port = port
+	}
+}
+
+// WithHostPublicKey adds the public key to the Host
+func WithHostPublicKey(key []byte) HostOpt {
+	return func(h *Host) {
+		h.PublicKey = key
+	}
+}
+
+// WithHostKeyType adds the keytype to the Host
+func WithHostKeyType(keyType proto_rexecd.KeyType) HostOpt {
+	return func(h *Host) {
+		h.KeyType = keyType
+	}
+}
+
 // NewHost returns a new host
-func NewHost(db *sql.DB, fqdn string, port int64, publicKey []byte, keyType proto_rexecd.KeyType, opts ...HostOpt) *Host {
+func NewHost(db *sql.DB, opts ...HostOpt) *Host {
 	h := &Host{
-		FQDN:      fqdn,
-		Port:      port,
-		PublicKey: publicKey,
-		KeyType:   keyType,
-		db:        db,
+		db: db,
 	}
 	for _, fn := range opts {
 		fn(h)
+	}
+	if h.Port == "" {
+		h.Port == "22"
 	}
 	return h
 }
@@ -58,16 +85,23 @@ func (h *Host) Create(ctx context.Context) (id int64, err error) {
 }
 
 // Read gets Host info
-func (h *Host) Read(ctx context.Context, id int64) (*Host, error) {
+func (h *Host) Read(ctx context.Context, fqdn string) error {
 	query := `
-  SELECT (fqdn, port, public_key) FROM host WHERE id = ?;
+  SELECT (id, fqdn, port, public_key, key_type) FROM host WHERE fqdn = ?;
   `
-	row := h.db.QueryRowContext(ctx, query, id)
+	row := h.db.QueryRowContext(ctx, query, h.FQDN)
 
-	var fqdn string
-	var port int64
+	var id int64
+	var port string
 	var publicKey []byte
+	var keyType proto_rexecd.KeyType
 
-	err := row.Scan(&fqdn, &port, &publicKey)
-	return &Host{ID: id, FQDN: fqdn, PublicKey: publicKey}, err
+	if err := row.Scan(&id, &fqdn, &port, &publicKey); err != nil {
+		return err
+	}
+	h.ID = id
+	h.Port = port
+	h.PublicKey = publicKey
+	h.KeyType = keyType
+	return nil
 }

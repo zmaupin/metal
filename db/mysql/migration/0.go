@@ -2,10 +2,18 @@ package migration
 
 var _0 = `
 # entity set
+CREATE TABLE IF NOT EXISTS instance (
+  # FQDN:PORT
+  net VARCHAR(67),
+
+  PRIMARY KEY (net)
+);
+
+# entity set
 CREATE TABLE IF NOT EXISTS host (
   id          SERIAL,
   fqdn        VARCHAR(63) NOT NULL UNIQUE,
-  port        SMALLINT UNSIGNED,
+  port        VARCHAR(5),
   public_key  BLOB,
   key_type    VARCHAR(30),
 

@@ -14,9 +14,6 @@ import (
 	"github.com/metal-go/metal/util/pipeline"
 )
 
-// ExitUnknown when the command fails for an unknown reason
-const ExitUnknown int32 = -1
-
 // Server implements proto_rexecd.RexecdServer
 type Server interface {
 	proto_rexecd.RexecdServer
@@ -29,7 +26,7 @@ type SSHEnv map[string]string
 // SSHSessionBuilder is holds the information required to build a pointer to a
 // sss.Session
 type SSHSessionBuilder struct {
-	address      string
+	fqdn         string
 	port         string
 	env          SSHEnv
 	clientConfig *ssh.ClientConfig
@@ -38,23 +35,23 @@ type SSHSessionBuilder struct {
 // SSHSessionBuilderOpt is an option for an SSHSessionBuilder
 type SSHSessionBuilderOpt func(*SSHSessionBuilder)
 
-// SSHSessionWithEnv adds an SSHEnv to the SSHSessionBuilder
-func SSHSessionWithEnv(env SSHEnv) SSHSessionBuilderOpt {
+// WithSSHSessionBuilderEnv adds an SSHEnv to the SSHSessionBuilder
+func WithSSHSessionBuilderEnv(env SSHEnv) SSHSessionBuilderOpt {
 	return func(s *SSHSessionBuilder) {
 		s.env = env
 	}
 }
 
-// SSHSessionWithPort adds a port to the SSHSessionBuilder
-func SSHSessionWithPort(port string) SSHSessionBuilderOpt {
+// WithSSHSessionBuilderPort adds a port to the SSHSessionBuilder
+func WithSSHSessionBuilderPort(port string) SSHSessionBuilderOpt {
 	return func(s *SSHSessionBuilder) {
 		s.port = port
 	}
 }
 
 // NewSSHSessionBuilder returns a pointer to an ssh.Session
-func NewSSHSessionBuilder(address string, sshConfig *ssh.ClientConfig, opts ...SSHSessionBuilderOpt) *SSHSessionBuilder {
-	builder := &SSHSessionBuilder{address: address, port: "22", clientConfig: sshConfig}
+func NewSSHSessionBuilder(fqdn string, sshConfig *ssh.ClientConfig, opts ...SSHSessionBuilderOpt) *SSHSessionBuilder {
+	builder := &SSHSessionBuilder{fqdn: fqdn, port: "22", clientConfig: sshConfig}
 	for _, fn := range opts {
 		fn(builder)
 	}
@@ -63,7 +60,7 @@ func NewSSHSessionBuilder(address string, sshConfig *ssh.ClientConfig, opts ...S
 
 // Build returns a pointer to an ssh.Session
 func (s SSHSessionBuilder) Build() (*ssh.Session, error) {
-	network := fmt.Sprintf("%s:%s", s.address, s.port)
+	network := fmt.Sprintf("%s:%s", s.fqdn, s.port)
 	client, err := ssh.Dial("tcp", network, s.clientConfig)
 	if err != nil {
 		return &ssh.Session{}, err
@@ -180,10 +177,10 @@ func BuildAuthMethod(userPrivateKey []byte) (ssh.AuthMethod, error) {
 	return sshAuthMethod, nil
 }
 
-// BuildClientConfig builds an ssh.ClientConfig based on the given
+// NewSSHClientConfig builds an ssh.ClientConfig based on the given
 // proto_rexecd.RegisterUserRequest and proto_rexecd.RegisterHostRequest. This
 // will enforce FixedHostKey checking.
-func BuildClientConfig(username string, publicHostKey, privateUserKey []byte, hostKeyType proto_rexecd.KeyType) (*ssh.ClientConfig, error) {
+func NewSSHClientConfig(username string, privateUserKey, publicHostKey []byte, hostKeyType proto_rexecd.KeyType) (*ssh.ClientConfig, error) {
 	key, _, _, _, err := ssh.ParseAuthorizedKey(publicHostKey)
 	if err != nil {
 		return &ssh.ClientConfig{}, err

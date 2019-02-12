@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -105,7 +106,15 @@ func (m *Migrate) Run() error {
 			return err
 		}
 	}
-	log.Info("databse initialized")
+	net := fmt.Sprintf("%s:%s", config.RexecdGlobal.Address, config.RexecdGlobal.Port)
+	row := db.QueryRowContext(m.ctx, "SELECT net FROM instance WHERE net = ?;", net)
+	var foundNet string
+	if err := row.Scan(&foundNet); err != nil {
+		if _, err = db.ExecContext(m.ctx, "INSERT INTO instance (net) VALUES (?);", net); err != nil {
+			return err
+		}
+	}
+	log.Info("database initialized")
 	return nil
 }
 
