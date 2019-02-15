@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -30,12 +31,17 @@ func Init(ctx context.Context) error {
 	parts := strings.Split(dir, string(os.PathSeparator))
 	projectRoot := strings.Join(parts[:len(parts)-3], string(os.PathSeparator))
 
-	devEnv := exec.Command("make", "rexecd-memory-server-restart")
+	devEnv := exec.Command("docker-compose", "--file", filepath.Join("docker", "rexecd-mysql-server.yml"), "restart")
 	devEnv.Stdout = os.Stdout
 	devEnv.Stderr = os.Stderr
 	devEnv.Dir = projectRoot
 	if err = devEnv.Run(); err != nil {
 		return err
+	}
+
+	for i := 20; i > 0; i-- {
+		fmt.Println("Waiting for MySQL to intialize ", i)
+		time.Sleep(time.Second)
 	}
 	return nil
 }
@@ -134,26 +140,21 @@ func TestRexecd(t *testing.T) {
 			t.Fatal(err)
 		}
 		registerHostRequest := &proto_rexecd.RegisterHostRequest{
-			HostId:    name,
+			Fqdn:      name,
 			PublicKey: publicHostRSA,
-			KeyType:   "rsa-sha2-512",
+			KeyType:   proto_rexecd.KeyType_rsa_sha2_512,
 		}
 		_, err = rexecdClient.RegisterHost(ctx, registerHostRequest)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		commandRequest.HostConfig = append(commandRequest.GetHostConfig(), &proto_rexecd.HostConfig{
-			HostId:  name,
-			Address: ipaddress,
-			Port:    "22",
+		commandRequest.HostConnect = append(commandRequest.GetHostConnect(), &proto_rexecd.HostConnect{
+			Fqdn: ipaddress,
+			Port: "22",
 		})
 	}
 	privatePath, err := user.Expand("~/.ssh/id_rsa")
-	if err != nil {
-		t.Fatal(err)
-	}
-	publicPath, err := user.Expand("~/.ssh/id_rsa.pub")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,14 +162,9 @@ func TestRexecd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	publicKey, err := ioutil.ReadFile(publicPath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	commandRequest.PrivateKey = privateKey
 	registerUserRequest := &proto_rexecd.RegisterUserRequest{
-		Username:   "dev",
-		PrivateKey: privateKey,
-		PublicKey:  publicKey,
+		Username: "dev",
 	}
 	_, err = rexecdClient.RegisterUser(ctx, registerUserRequest)
 	if err != nil {
@@ -186,9 +182,9 @@ func TestRexecd(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected failure: %s", err.Error())
 		}
-		exit := commandResponse.GetExit()
-		if exit.GetStatus() != 0 {
-			t.Errorf("expected 0 exit status, got %d", exit.GetStatus())
+		exit := commandResponse.GetExitCode()
+		if exit != 0 {
+			t.Errorf("expected 0 exit status, got %d", exit)
 		}
 	}
 }

@@ -9,6 +9,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/metal-go/metal/config"
+	"github.com/metal-go/metal/test/lib"
 )
 
 func TestMigrate(t *testing.T) {
@@ -62,4 +63,8 @@ func TestMigrate(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+}
+
+func TestMain(t *testing.M) {
+	lib.MySQLTestMain(t)
 }

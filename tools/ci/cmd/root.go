@@ -1,19 +1,14 @@
 package cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 )
-
-// worker is a blocking function. Do not close the channel within a worker!
-type worker func(ctx context.Context, ch chan error)
 
 var packages = []string{"db", "rexecd", "util"}
 var pkgError = fmt.Sprintf("Invalid target package, options %s\n", strings.Join(packages, " "))
@@ -37,6 +32,13 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func banner(s string) string {
+	b := strings.Repeat("#", 80)
+	size := len(s)
+	m := "#" + " " + s + " " + strings.Repeat("#", 80-size-3)
+	return b + "\n" + m + "\n" + b
 }
 
 func heading(s string) string {
@@ -69,28 +71,4 @@ func buildPaths() []string {
 		}
 	}
 	return paths
-}
-
-func withTimeout(worker worker) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(timeoutSec))
-	defer cancel()
-	run := func() chan error {
-		ch := make(chan error)
-		go func() {
-			if err := validatePkgArg(); err != nil {
-				ch <- err
-				close(ch)
-				return
-			}
-			worker(ctx, ch)
-			close(ch)
-		}()
-		return ch
-	}
-	select {
-	case err := <-run():
-		return err
-	case <-ctx.Done():
-		return errors.New("timeout exceeded")
-	}
 }

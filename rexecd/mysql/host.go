@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
 )
@@ -76,7 +77,7 @@ func (h *Host) Create(ctx context.Context) (id int64, err error) {
   `
 	result, err := h.db.ExecContext(
 		ctx, statement, h.FQDN, h.Port, h.PublicKey,
-		proto_rexecd.KeyType_name[int32(h.KeyType)])
+		strings.Replace(proto_rexecd.KeyType_name[int32(h.KeyType)], "_", "-", -1))
 
 	if err != nil {
 		return int64(0), err
