@@ -20,47 +20,43 @@ type Command struct {
 // CommandOpt is an option for a NewCommand
 type CommandOpt func(*Command)
 
-// WithCommandID adds an id to the NewCommand
-func WithCommandID(id int64) CommandOpt {
-	return func(c *Command) {
-		c.ID = id
-	}
-}
-
-// WithExitCode adds an exit code to the NewCommand
-func WithExitCode(exitCode int64) CommandOpt {
-	return func(c *Command) {
-		c.ExitCode = exitCode
-	}
-}
-
 // NewCommand returns a new Command
-func NewCommand(db *sql.DB, cmd string, username string, hostID, timestamp int64, opts ...CommandOpt) *Command {
-	c := &Command{
-		Cmd:       cmd,
-		Username:  username,
-		HostID:    hostID,
-		Timestamp: timestamp,
-		db:        db,
-	}
-	for _, fn := range opts {
-		fn(c)
-	}
+func NewCommand(db *sql.DB) *Command {
+	c := &Command{db: db}
 	return c
 }
 
 // Create a Command record
-func (c *Command) Create(ctx context.Context) error {
+func (c *Command) Create(ctx context.Context, cmd string, username, fqdn string, opts ...CommandOpt) error {
+	for _, fn := range opts {
+		fn(c)
+	}
+	c.Cmd = cmd
+	c.Username = username
+
 	query := `
+	SELECT id FROM host WHERE fqdn = ?;
+	`
+	var hostID int64
+	row := c.db.QueryRowContext(ctx, query, fqdn)
+	if err := row.Scan(&hostID); err != nil {
+		return err
+	}
+	c.HostID = hostID
+
+	timestamp := time.Now().Unix()
+	c.Timestamp = timestamp
+
+	statement := `
 	INSERT INTO command (cmd, username, host_id, timestamp)
-	VALUES (?, ?, ?, ?, ?, ?);
+	VALUES (?, ?, ?, ?);
   `
-	result, err := c.db.ExecContext(ctx, query, c.Cmd, c.Username, c.HostID, c.Timestamp)
+	result, err := c.db.ExecContext(ctx, statement, cmd, username, hostID, timestamp)
 	if err != nil {
 		return err
 	}
-	id, err := result.LastInsertId()
-	c.ID = id
+	cmdID, err := result.LastInsertId()
+	c.ID = cmdID
 	return err
 }
 
@@ -86,6 +82,7 @@ func (c *Command) AddStderrLine(ctx context.Context, b []byte) error {
 
 // SetExitCode sets the exit code on command
 func (c *Command) SetExitCode(ctx context.Context, exitCode int64) error {
+	c.ExitCode = exitCode
 	statement := `
 	INSERT INTO command (exit_code) VALUES (?) WHERE id = ?;
 	`

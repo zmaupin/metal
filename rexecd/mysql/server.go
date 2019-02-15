@@ -79,7 +79,11 @@ func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConn
 	}
 
 	// Load Command
-	command := NewCommand(m.db, c.GetCmd(), c.GetUsername(), host.ID, t.Unix())
+	command := NewCommand(m.db)
+	if err := command.Create(ctx, c.GetCmd(), c.GetUsername(), hostConnect.GetFqdn()); err != nil {
+		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c))
+		return
+	}
 
 	// Build sshConfig
 	sshConfig, err := rexecd.NewSSHClientConfig(c.GetUsername(), c.GetPrivateKey(), host.PublicKey, host.KeyType)
@@ -168,12 +172,14 @@ func (m *Server) RegisterUser(ctx context.Context, r *proto_rexecd.RegisterUserR
 	*proto_rexecd.RegisterUserResponse, error,
 ) {
 	u := NewUser(m.db)
-	err := u.Create(ctx, r.GetUsername())
+	err := u.Create(ctx, r.GetUsername(), WithUserFirstName(r.GetFirstName()),
+		WithUserLastName(r.GetLastName()), WithUserAdmin(r.GetAdmin()))
+
 	return &proto_rexecd.RegisterUserResponse{}, err
 }
 
 // Run starts the server
-func (m *Server) Run() error {
+func (m *Server) Run(done chan bool) error {
 	migrate := migration.New()
 	if err := migrate.Run(); err != nil {
 		return err
@@ -193,5 +199,17 @@ func (m *Server) Run() error {
 	server := grpc.NewServer()
 	proto_rexecd.RegisterRexecdServer(server, m)
 	grpc_health_v1.RegisterHealthServer(server, health.NewServer())
-	return server.Serve(lis)
+	run := func() chan error {
+		ch := make(chan error)
+		go func() {
+			ch <- server.Serve(lis)
+		}()
+		return ch
+	}
+	select {
+	case err := <-run():
+		return err
+	case <-done:
+		return nil
+	}
 }

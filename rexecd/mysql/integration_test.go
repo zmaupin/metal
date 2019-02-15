@@ -24,7 +24,7 @@ func TestHost(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Run("create", func(t *testing.T) {
+	t.Run("Create", func(t *testing.T) {
 		host := NewHost(db)
 
 		id, err := host.Create(context.Background(), "test-host", WithHostKeyType(proto_rexecd.KeyType_rsa_sha2_512),
@@ -58,7 +58,7 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Run("create", func(t *testing.T) {
+	t.Run("Create", func(t *testing.T) {
 		user := NewUser(db)
 		if err := user.Create(context.Background(), "test-user", WithUserFirstName("test"), WithUserLastName("user")); err != nil {
 			t.Fatal(err)
@@ -82,6 +82,33 @@ func TestUser(t *testing.T) {
 		}
 		if user.Username != "test-user" {
 			t.Errorf("expected test-user, got %s", user.Username)
+		}
+	})
+}
+
+func TestCommand(t *testing.T) {
+	config.RexecdInit()
+	if err := migration.New().Run(); err != nil {
+		t.Error(err)
+	}
+	dsn := config.RexecdGlobal.DataSourceName + "rexecd"
+	db, err := sql.Open("mysql", dsn)
+	defer db.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Run("Create", func(t *testing.T) {
+		cmd := NewCommand(db)
+		if err := cmd.Create(context.Background(), "echo hello world", "test-user", "test-host"); err != nil {
+			t.Fatal(err)
+		}
+		var size int
+		row := db.QueryRow("SELECT COUNT(*) FROM user;")
+		if err := row.Scan(&size); err != nil {
+			t.Fatal(err)
+		}
+		if size != 1 {
+			t.Fatal(size)
 		}
 	})
 }

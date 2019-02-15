@@ -21,7 +21,8 @@ commands at global scale.`),
 		config.RexecdInit()
 		switch config.RexecdGlobal.ServerType {
 		case "mysql":
-			err := mysql.New().Run()
+			doneCh := make(chan bool)
+			err := mysql.New().Run(doneCh)
 			if err != nil {
 				log.Fatal(err)
 			}
