@@ -23,7 +23,7 @@ var unitCmd = &cobra.Command{
 	Long:  "Execute unit tests",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := with.Timeout(worker.Func(func(ctx context.Context, ch chan error) {
-			fmt.Println(heading("Unit Test Stage"))
+			fmt.Println(banner("Unit Test Stage"))
 			paths := []string{"test", "-v", "-tags", "unit"}
 			paths = append(paths, buildPaths()...)
 			cmd := exec.CommandContext(ctx, "go", paths...)
