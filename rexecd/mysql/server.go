@@ -157,9 +157,9 @@ func (m *Server) exitStatus(ctx context.Context, command *Command, host *Host, e
 func (m *Server) RegisterHost(ctx context.Context, r *proto_rexecd.RegisterHostRequest) (
 	*proto_rexecd.RegisterHostResponse, error,
 ) {
-	host := NewHost(m.db, WithHostFQDN(r.GetFqdn()), WithHostPort(r.GetPort()),
+	host := NewHost(m.db)
+	id, err := host.Create(ctx, r.GetFqdn(), WithHostPort(r.GetPort()),
 		WithHostPublicKey(r.GetPublicKey()), WithHostKeyType(r.GetKeyType()))
-	id, err := host.Create(ctx)
 	return &proto_rexecd.RegisterHostResponse{Id: id}, err
 }
 
@@ -167,9 +167,8 @@ func (m *Server) RegisterHost(ctx context.Context, r *proto_rexecd.RegisterHostR
 func (m *Server) RegisterUser(ctx context.Context, r *proto_rexecd.RegisterUserRequest) (
 	*proto_rexecd.RegisterUserResponse, error,
 ) {
-	u := NewUser(m.db, r.GetUsername(), WithUserFirstName(r.GetFirstName()),
-		WithUserLastName(r.GetLastName()), WithUserAdmin(r.GetAdmin()))
-	err := u.Create(ctx)
+	u := NewUser(m.db)
+	err := u.Create(ctx, r.GetUsername())
 	return &proto_rexecd.RegisterUserResponse{}, err
 }
 

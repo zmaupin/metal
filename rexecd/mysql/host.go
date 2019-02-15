@@ -57,13 +57,8 @@ func WithHostKeyType(keyType proto_rexecd.KeyType) HostOpt {
 }
 
 // NewHost returns a new host
-func NewHost(db *sql.DB, opts ...HostOpt) *Host {
-	h := &Host{
-		db: db,
-	}
-	for _, fn := range opts {
-		fn(h)
-	}
+func NewHost(db *sql.DB) *Host {
+	h := &Host{db: db}
 	if h.Port == "" {
 		h.Port = "22"
 	}
@@ -71,7 +66,11 @@ func NewHost(db *sql.DB, opts ...HostOpt) *Host {
 }
 
 // Create a new Host
-func (h *Host) Create(ctx context.Context) (id int64, err error) {
+func (h *Host) Create(ctx context.Context, fqdn string, opts ...HostOpt) (id int64, err error) {
+	WithHostFQDN(fqdn)(h)
+	for _, fn := range opts {
+		fn(h)
+	}
 	statement := `
 	INSERT INTO host (fqdn, port, public_key, key_type) VALUES (?, ?, ?, ?);
   `
@@ -88,21 +87,22 @@ func (h *Host) Create(ctx context.Context) (id int64, err error) {
 // Read gets Host info
 func (h *Host) Read(ctx context.Context, fqdn string) error {
 	query := `
-	SELECT (id, fqdn, port, public_key, key_type) FROM host WHERE fqdn = ?;
+	SELECT id, fqdn, port, public_key, key_type FROM host WHERE fqdn = ?;
   `
-	row := h.db.QueryRowContext(ctx, query, h.FQDN)
+	row := h.db.QueryRowContext(ctx, query, fqdn)
 
 	var id int64
 	var port string
 	var publicKey []byte
-	var keyType proto_rexecd.KeyType
+	var keyType string
 
-	if err := row.Scan(&id, &fqdn, &port, &publicKey); err != nil {
+	if err := row.Scan(&id, &fqdn, &port, &publicKey, &keyType); err != nil {
 		return err
 	}
 	h.ID = id
 	h.Port = port
 	h.PublicKey = publicKey
-	h.KeyType = keyType
+	h.KeyType = proto_rexecd.KeyType(proto_rexecd.KeyType_value[keyType])
+	h.FQDN = fqdn
 	return nil
 }

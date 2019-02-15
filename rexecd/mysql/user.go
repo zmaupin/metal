@@ -17,6 +17,13 @@ type User struct {
 // UserOpt option for a new User
 type UserOpt func(*User)
 
+// WithUsername sets the optional FirstName
+func WithUsername(name string) UserOpt {
+	return func(u *User) {
+		u.Username = name
+	}
+}
+
 // WithUserFirstName sets the optional FirstName
 func WithUserFirstName(name string) UserOpt {
 	return func(u *User) {
@@ -39,47 +46,41 @@ func WithUserAdmin(b bool) UserOpt {
 }
 
 // NewUser returns a new User
-func NewUser(db *sql.DB, username string, opts ...UserOpt) *User {
-	u := &User{
-		Username: username,
-		db:       db,
-	}
-	for _, fn := range opts {
-		fn(u)
-	}
-	return u
+func NewUser(db *sql.DB) *User {
+	return &User{db: db}
 }
 
 // Create a new User
-func (u *User) Create(ctx context.Context) error {
-	if _, err := u.Read(ctx, u.Username); err != nil {
-		return err
+func (u *User) Create(ctx context.Context, username string, opts ...UserOpt) error {
+	WithUsername(username)(u)
+	for _, fn := range opts {
+		fn(u)
 	}
+
 	statement := `
 	INSERT INTO user (username, first_name, last_name, admin)
-	VALUES (?, ?, ?, ?, ?, ?);
+	VALUES (?, ?, ?, ?);
   `
 	_, err := u.db.ExecContext(ctx, statement, u.Username, u.FirstName, u.LastName, u.Admin)
 	return err
 }
 
 // Read a User
-func (u *User) Read(ctx context.Context, username string) (*User, error) {
-	var userName string
+func (u *User) Read(ctx context.Context, username string) error {
 	var firstName string
 	var lastName string
+	var admin bool
 
 	query := `
-	SELECT (username, first_name, last_name, admin)
+	SELECT first_name, last_name, admin
 	FROM user
 	WHERE username = ?;
   `
 	row := u.db.QueryRowContext(ctx, query, username)
-	err := row.Scan()
+	err := row.Scan(&firstName, &lastName, &admin)
 
-	return &User{
-		Username:  userName,
-		FirstName: firstName,
-		LastName:  lastName,
-	}, err
+	u.FirstName = firstName
+	u.LastName = lastName
+	u.Admin = admin
+	return err
 }
