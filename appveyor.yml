@@ -18,5 +18,6 @@ test_script:
   - cd $GOPATH/src/github.com/$APPVEYOR_REPO_NAME
   - go get -u github.com/golang/protobuf/protoc-gen-go
   - go run tools/ci/main.go proto
-  - go run tools/ci/main.go unit --timeout 60
-  - go run tools/ci/main.go integration --timeout 300
+  - export GOCACHE=off
+  - go run tools/ci/main.go unit --timeout 60s
+  - go run tools/ci/main.go integration --timeout 300s

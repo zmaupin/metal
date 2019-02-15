@@ -24,7 +24,7 @@ type integrationConfig struct {
 
 var integrationSuite = []integrationConfig{
 	integrationConfig{name: "mysql", worker: worker.Func(func(ctx context.Context, ch chan error) {
-		testArgs := append(baseIntegrationArgs, "-tags", "mysql")
+		testArgs := append(baseIntegrationArgs, "-tags", "mysql", "-p", "1")
 		testArgs = append(testArgs, buildPaths()...)
 		cmd := exec.CommandContext(ctx, "go", testArgs...)
 		cmd.Stdout = os.Stdout
@@ -33,7 +33,6 @@ var integrationSuite = []integrationConfig{
 			ch <- err
 			return
 		}
-		close(ch)
 	})},
 }
 
@@ -47,6 +46,14 @@ var integrationCmd = &cobra.Command{
 			for _, suite := range integrationSuite {
 				fmt.Printf(heading(suite.name))
 				suite.worker.Work(ctx, ch)
+				select {
+				case err := <-ch:
+					if err != nil {
+						log.Fatal(err)
+					}
+				default:
+					ch <- nil
+				}
 			}
 		}), time.Duration(time.Second*integrationTimeoutSec))
 		if err != nil {
@@ -56,7 +63,7 @@ var integrationCmd = &cobra.Command{
 }
 
 func init() {
-	integrationCmd.Flags().DurationVar(&integrationTimeoutSec, "timeout", 60, timeoutFlagDesc)
+	integrationCmd.Flags().DurationVar(&integrationTimeoutSec, "timeout", time.Duration(time.Second*300), timeoutFlagDesc)
 	integrationCmd.Flags().StringVar(&pkg, "pkg", "", fmt.Sprintf("Target package. Options: %s\n", strings.Join(packages, " ")))
 	rootCmd.AddCommand(integrationCmd)
 }

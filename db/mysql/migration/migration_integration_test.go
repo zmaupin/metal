@@ -25,7 +25,6 @@ func TestMigrate(t *testing.T) {
 	}
 	t.Run("test_count", func(t *testing.T) {
 		rows, err := db.Query("SELECT COUNT(*) FROM migration;\n")
-		defer rows.Close()
 		if err != nil {
 			t.Fatal(err)
 		}

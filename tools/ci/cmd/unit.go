@@ -32,8 +32,8 @@ var unitCmd = &cobra.Command{
 			if err := cmd.Run(); err != nil {
 				ch <- err
 			}
-			close(ch)
-		}), time.Duration(time.Second*unitTimeoutSec))
+			ch <- nil
+		}), time.Duration(unitTimeoutSec))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -41,7 +41,7 @@ var unitCmd = &cobra.Command{
 }
 
 func init() {
-	unitCmd.Flags().DurationVar(&unitTimeoutSec, "timeout", 5, timeoutFlagDesc)
+	unitCmd.Flags().DurationVar(&unitTimeoutSec, "timeout", time.Duration(time.Second*10), timeoutFlagDesc)
 	unitCmd.Flags().StringVar(&pkg, "pkg", "", fmt.Sprintf("Target package. Options: %s\n", strings.Join(packages, " ")))
 	rootCmd.AddCommand(unitCmd)
 }
