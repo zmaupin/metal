@@ -79,6 +79,7 @@ func (u *User) Read(ctx context.Context, username string) error {
 	row := u.db.QueryRowContext(ctx, query, username)
 	err := row.Scan(&firstName, &lastName, &admin)
 
+	u.Username = username
 	u.FirstName = firstName
 	u.LastName = lastName
 	u.Admin = admin

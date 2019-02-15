@@ -77,24 +77,11 @@ func TestUser(t *testing.T) {
 		if err := user.Read(context.Background(), "test-user"); err != nil {
 			t.Fatal(err)
 		}
-		// result, err := db.Query("SELECT * FROM user;")
-		// if err != nil {
-		// 	t.Fatal(err)
-		// }
-		// var username string
-		// var firstName string
-		// var lastName string
-		// var admin bool
-		//
-		// for result.Next() {
-		// 	var username string
-		// 	if err := result.Scan(&username, &firstName, &lastName, &admin); err != nil {
-		// 		t.Fatal(err)
-		// 	}
-		// }
-		// fmt.Println(username, firstName, lastName, admin)
 		if user.FirstName != "test" {
 			t.Errorf("expected test, got %s", user.FirstName)
+		}
+		if user.Username != "test-user" {
+			t.Errorf("expected test-user, got %s", user.Username)
 		}
 	})
 }
