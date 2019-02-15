@@ -91,18 +91,19 @@ func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConn
 		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c))
 		return
 	}
+	fmt.Println("I MADE IT HERE")
 
 	// Build SSH Session
 	sshSession, err := rexecd.NewSSHSessionBuilder(hostConnect.GetFqdn(), sshConfig,
 		rexecd.WithSSHSessionBuilderPort(host.Port),
 		rexecd.WithSSHSessionBuilderEnv(c.GetEnv())).Build()
 
-	defer sshSession.Close()
-
 	if err != nil {
 		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c))
 		return
 	}
+
+	defer sshSession.Close()
 
 	// Build ExecRunner
 	execRunner := rexecd.NewExecRunner(c.GetCmd(), sshSession, NewBytesLineHandler(command, MySQLStdout),
@@ -144,9 +145,12 @@ func (m *Server) exitStatus(ctx context.Context, command *Command, host *Host, e
 		log.WithFields(logFields).Info("command execution failed")
 	}
 
-	if e := command.SetExitCode(ctx, exitCode); err != nil {
-		log.WithFields(logFields).Error(e)
+	if command != nil {
+		if e := command.SetExitCode(ctx, exitCode); err != nil {
+			log.WithFields(logFields).Error(e)
+		}
 	}
+
 	wg.Done()
 
 	return &proto_rexecd.CommandResponse{

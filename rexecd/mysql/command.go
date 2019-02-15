@@ -84,7 +84,9 @@ func (c *Command) AddStderrLine(ctx context.Context, b []byte) error {
 func (c *Command) SetExitCode(ctx context.Context, exitCode int64) error {
 	c.ExitCode = exitCode
 	statement := `
-	INSERT INTO command (exit_code) VALUES (?) WHERE id = ?;
+	UPDATE command
+	SET exit_code = ?
+	WHERE id = ?;
 	`
 	_, err := c.db.ExecContext(ctx, statement, exitCode, c.ID)
 	return err

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,7 +22,8 @@ import (
 	"github.com/metal-go/metal/util/user"
 )
 
-var sshdHosts = []string{"docker_host01_1", "docker_host02_1"}
+var sshdHost = "docker_host01_1"
+var projectRoot string
 
 func Init(ctx context.Context) error {
 	dir, err := os.Getwd()
@@ -30,10 +32,10 @@ func Init(ctx context.Context) error {
 	}
 	parts := strings.Split(dir, string(os.PathSeparator))
 	projectRoot := strings.Join(parts[:len(parts)-3], string(os.PathSeparator))
-
-	devEnv := exec.Command("docker-compose", "--file", filepath.Join("docker", "rexecd-mysql-server.yml"), "restart")
-	devEnv.Stdout = os.Stdout
-	devEnv.Stderr = os.Stderr
+	devEnv := exec.Command("docker-compose", "--file", filepath.Join(projectRoot, "docker", "rexecd-mysql-server.yml"), "down")
+	devEnv.Dir = projectRoot
+	devEnv.Run()
+	devEnv = exec.Command("docker-compose", "--file", filepath.Join(projectRoot, "docker", "rexecd-mysql-server.yml"), "up", "--detach")
 	devEnv.Dir = projectRoot
 	if err = devEnv.Run(); err != nil {
 		return err
@@ -103,57 +105,51 @@ func TestRexecd(t *testing.T) {
 	defer conn.Close()
 	rexecdClient := proto_rexecd.NewRexecdClient(conn)
 	healthClient := health.NewHealthClient(conn)
-	var count uint
-	for {
-		healthCheckResponse, err := healthClient.Check(ctx, &health.HealthCheckRequest{})
+	for count := 0; ; count++ {
+		healthCheckResponse, _ := healthClient.Check(ctx, &health.HealthCheckRequest{})
 		if healthCheckResponse.GetStatus() == health.HealthCheckResponse_SERVING {
 			fmt.Println("health check response:", healthCheckResponse)
 			break
 		}
-		count++
-		fmt.Printf("waiting for rexecd to start: %d: %s\n", count, err.Error())
+		fmt.Printf("waiting for rexecd to start: %d\n", count)
 		time.Sleep(1 * time.Second)
 	}
 	commandRequest := &proto_rexecd.CommandRequest{Cmd: "/bin/true", Username: "dev"}
-	for _, name := range sshdHosts {
-		container, found, err := findContainer(ctx, client, name)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !found {
-			t.Fatal(fmt.Errorf("could not find container %s", name))
-		}
-		containerJSON, err := client.ContainerInspect(ctx, container.ID)
-		if err != nil {
-			t.Fatal(err)
-		}
-		var ipaddress string
-		for _, data := range containerJSON.NetworkSettings.Networks {
-			ipaddress = data.IPAddress
-			break
-		}
-		if err != nil {
-			t.Fatal(err)
-		}
-		publicHostRSA, err := getPublicHostRSA(ctx, client, name)
-		if err != nil {
-			t.Fatal(err)
-		}
-		registerHostRequest := &proto_rexecd.RegisterHostRequest{
-			Fqdn:      name,
-			PublicKey: publicHostRSA,
-			KeyType:   proto_rexecd.KeyType_rsa_sha2_512,
-		}
-		_, err = rexecdClient.RegisterHost(ctx, registerHostRequest)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		commandRequest.HostConnect = append(commandRequest.GetHostConnect(), &proto_rexecd.HostConnect{
-			Fqdn: ipaddress,
-			Port: "22",
-		})
+	container, found, err := findContainer(ctx, client, sshdHost)
+	if err != nil {
+		t.Fatal(err)
 	}
+	if !found {
+		t.Fatal(fmt.Errorf("could not find container %s", sshdHost))
+	}
+	containerJSON, err := client.ContainerInspect(ctx, container.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := containerJSON.NetworkSettings.NetworkSettingsBase.Ports["22/tcp"][0].HostPort
+	if err != nil {
+		t.Fatal(err)
+	}
+	publicHostRSA, err := getPublicHostRSA(ctx, client, sshdHost)
+	if err != nil {
+		t.Fatal(err)
+	}
+	registerHostRequest := &proto_rexecd.RegisterHostRequest{
+		Fqdn:      "127.0.0.1",
+		Port:      port,
+		PublicKey: publicHostRSA,
+		KeyType:   proto_rexecd.KeyType_ssh_rsa,
+	}
+	_, err = rexecdClient.RegisterHost(ctx, registerHostRequest)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	commandRequest.HostConnect = append(commandRequest.GetHostConnect(), &proto_rexecd.HostConnect{
+		Fqdn: "127.0.0.1",
+		Port: port,
+	})
+
 	privatePath, err := user.Expand("~/.ssh/id_rsa")
 	if err != nil {
 		t.Fatal(err)
@@ -179,6 +175,10 @@ func TestRexecd(t *testing.T) {
 		if err == io.EOF {
 			break
 		}
+		if err != nil {
+			log.Fatalf("%s, %v", err.Error(), commandRequest)
+		}
+		fmt.Println(commandResponse)
 		if err != nil {
 			t.Errorf("unexpected failure: %s", err.Error())
 		}

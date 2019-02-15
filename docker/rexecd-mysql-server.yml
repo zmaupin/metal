@@ -37,6 +37,7 @@ services:
       - SSH_USERS=dev:1001:1001
   db:
     image: mysql
+    network_mode: bridge
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: 'password'

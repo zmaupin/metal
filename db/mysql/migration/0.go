@@ -27,8 +27,6 @@ CREATE TABLE IF NOT EXISTS user (
   first_name  VARCHAR(30),
   last_name   VARCHAR(30),
   admin       BOOLEAN,
-  private_key BLOB,
-  public_key  BLOB,
 
   PRIMARY KEY (username)
 );

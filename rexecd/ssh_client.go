@@ -1,8 +1,6 @@
 package rexecd
 
 import (
-	"strings"
-
 	"golang.org/x/crypto/ssh"
 
 	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
@@ -21,12 +19,11 @@ func NewSSHClientConfig(username string, privateUserKey, publicHostKey []byte, h
 	if err != nil {
 		return &ssh.ClientConfig{}, err
 	}
-	keyType := strings.Replace(proto_rexecd.KeyType_name[int32(hostKeyType)], "_", "-", -1)
+	// keyType := strings.Replace(proto_rexecd.KeyType_name[int32(hostKeyType)], "_", "-", -1)
 	return &ssh.ClientConfig{
-		User:              username,
-		Auth:              []ssh.AuthMethod{authMethod},
-		HostKeyAlgorithms: []string{keyType},
-		HostKeyCallback:   hostKeyCallback,
+		User:            username,
+		Auth:            []ssh.AuthMethod{authMethod},
+		HostKeyCallback: hostKeyCallback,
 	}, nil
 }
 

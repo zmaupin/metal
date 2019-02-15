@@ -25,7 +25,7 @@ enum KeyType {
   ssh_rsa = 0;
   rsa_sha2_256 = 1;
   rsa_sha2_512 = 2;
-  ssh_dsa = 3;
+  ssh_dss = 3;
   ecdsa_sha2_nistp256 = 4;
   ecdsa_sha2_nistp384 = 5;
   ecdsa_sha2_nistp521 = 6;
