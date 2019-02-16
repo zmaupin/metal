@@ -40,8 +40,8 @@ func (m *Server) Command(c *proto_rexecd.CommandRequest, s proto_rexecd.Rexecd_C
 		"host_count": len(c.GetHostConnect()),
 	}).Info("command request submitted")
 
-	// TODO: Make this a context with a configurable timeout
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(config.RexecdGlobal.CommandTimeoutSec))
+	defer cancel()
 
 	select {
 	case <-m.commandScheduler(ctx, c, s):
@@ -74,32 +74,31 @@ func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConn
 	// Load Host
 	host := NewHost(m.db)
 	if err := host.Read(ctx, hostConnect.GetFqdn()); err != nil {
-		s.Send(m.exitStatus(ctx, nil, host, err, 1, wg, c))
+		s.Send(m.exitStatus(ctx, nil, host, err, 1, wg, c, t))
 		return
 	}
 
-	// Load Command
+	// Load and create a new Command that can update the data store
 	command := NewCommand(m.db)
-	if err := command.Create(ctx, c.GetCmd(), c.GetUsername(), hostConnect.GetFqdn()); err != nil {
-		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c))
+	if err := command.Create(ctx, c.GetCmd(), c.GetUsername(), hostConnect.GetFqdn(), t.Unix()); err != nil {
+		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c, t))
 		return
 	}
 
 	// Build sshConfig
 	sshConfig, err := rexecd.NewSSHClientConfig(c.GetUsername(), c.GetPrivateKey(), host.PublicKey, host.KeyType)
 	if err != nil {
-		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c))
+		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c, t))
 		return
 	}
-	fmt.Println("I MADE IT HERE")
 
-	// Build SSH Session
+	// Build SSH Session from sshConfig
 	sshSession, err := rexecd.NewSSHSessionBuilder(hostConnect.GetFqdn(), sshConfig,
 		rexecd.WithSSHSessionBuilderPort(host.Port),
 		rexecd.WithSSHSessionBuilderEnv(c.GetEnv())).Build()
 
 	if err != nil {
-		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c))
+		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c, t))
 		return
 	}
 
@@ -111,12 +110,12 @@ func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConn
 
 	// Run it
 	exitCode, err := execRunner.Run(ctx)
-	s.Send(m.exitStatus(ctx, command, host, err, exitCode, wg, c))
+	s.Send(m.exitStatus(ctx, command, host, err, exitCode, wg, c, t))
 }
 
 // Update the command table with the appropriate exit code and return a
 // CommandResponse to the client
-func (m *Server) exitStatus(ctx context.Context, command *Command, host *Host, err error, exitCode int64, wg *sync.WaitGroup, commandRequest *proto_rexecd.CommandRequest) *proto_rexecd.CommandResponse {
+func (m *Server) exitStatus(ctx context.Context, command *Command, host *Host, err error, exitCode int64, wg *sync.WaitGroup, commandRequest *proto_rexecd.CommandRequest, t time.Time) *proto_rexecd.CommandResponse {
 	var id int64
 	if command == nil {
 		id = 0
@@ -153,11 +152,18 @@ func (m *Server) exitStatus(ctx context.Context, command *Command, host *Host, e
 
 	wg.Done()
 
+	var errMsg string
+	if err == nil {
+		errMsg = ""
+	} else {
+		err.Error()
+	}
+
 	return &proto_rexecd.CommandResponse{
 		Id:        id,
-		ErrorMsg:  err.Error(),
+		ErrorMsg:  errMsg,
 		ExitCode:  exitCode,
-		Timestamp: time.Now().Unix(),
+		Timestamp: t.Unix(),
 	}
 }
 
@@ -184,10 +190,13 @@ func (m *Server) RegisterUser(ctx context.Context, r *proto_rexecd.RegisterUserR
 
 // Run starts the server
 func (m *Server) Run(done chan bool) error {
+	// Ensure desired database state
 	migrate := migration.New()
 	if err := migrate.Run(); err != nil {
 		return err
 	}
+
+	// Get and set a sql.DB
 	dsn := config.RexecdGlobal.DataSourceName + "rexecd"
 	db, err := sql.Open("mysql", dsn)
 	defer db.Close()
@@ -195,6 +204,8 @@ func (m *Server) Run(done chan bool) error {
 		log.Fatal(err)
 	}
 	m.db = db
+
+	// Open up a port and start listening with a Health and Rexecd servers
 	network := fmt.Sprintf("%s:%s", config.RexecdGlobal.Address, config.RexecdGlobal.Port)
 	lis, err := net.Listen("tcp", network)
 	if err != nil {
@@ -203,6 +214,8 @@ func (m *Server) Run(done chan bool) error {
 	server := grpc.NewServer()
 	proto_rexecd.RegisterRexecdServer(server, m)
 	grpc_health_v1.RegisterHealthServer(server, health.NewServer())
+
+	// Create a selected function to serve Health and Rexecd
 	run := func() chan error {
 		ch := make(chan error)
 		go func() {
@@ -210,6 +223,8 @@ func (m *Server) Run(done chan bool) error {
 		}()
 		return ch
 	}
+
+	// Serve. Return on error or timeout
 	select {
 	case err := <-run():
 		return err

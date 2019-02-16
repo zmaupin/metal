@@ -3,9 +3,9 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	"strings"
 
 	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
+	"github.com/metal-go/metal/rexecd"
 )
 
 // Host model
@@ -20,13 +20,6 @@ type Host struct {
 
 // HostOpt is an option for a new Host
 type HostOpt func(*Host)
-
-// WithHostFQDN sets the fqdn on the Host
-func WithHostFQDN(fqdn string) HostOpt {
-	return func(h *Host) {
-		h.FQDN = fqdn
-	}
-}
 
 // WithHostID returns a HostOpt with a configured ID
 func WithHostID(id int64) HostOpt {
@@ -67,17 +60,14 @@ func NewHost(db *sql.DB) *Host {
 
 // Create a new Host
 func (h *Host) Create(ctx context.Context, fqdn string, opts ...HostOpt) (id int64, err error) {
-	WithHostFQDN(fqdn)(h)
+	h.FQDN = fqdn
 	for _, fn := range opts {
 		fn(h)
 	}
 	statement := `
 	INSERT INTO host (fqdn, port, public_key, key_type) VALUES (?, ?, ?, ?);
   `
-	result, err := h.db.ExecContext(
-		ctx, statement, h.FQDN, h.Port, h.PublicKey,
-		strings.Replace(proto_rexecd.KeyType_name[int32(h.KeyType)], "_", "-", -1))
-
+	result, err := h.db.ExecContext(ctx, statement, h.FQDN, h.Port, h.PublicKey, rexecd.KeyTypeKey(h.KeyType))
 	if err != nil {
 		return int64(0), err
 	}

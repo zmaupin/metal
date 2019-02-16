@@ -70,9 +70,23 @@ func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 	if err == nil {
 		return int64(0), nil
 	}
+
 	exitErr, ok := err.(*ssh.ExitError)
 	if ok {
 		return int64(exitErr.Waitmsg.ExitStatus()), nil
 	}
+
+	err = e.sshSession.Wait()
+
+	// Check for errors
+	if err == nil {
+		return int64(0), nil
+	}
+
+	exitErr, ok = err.(*ssh.ExitError)
+	if ok {
+		return int64(exitErr.Waitmsg.ExitStatus()), nil
+	}
+
 	return 1, err
 }

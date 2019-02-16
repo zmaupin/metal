@@ -51,7 +51,6 @@ message CommandRequest {
   string username = 3;
   bytes private_key = 4;
   repeated HostConnect host_connect = 5;
-  uint64 start_timestamp = 6;
   map<string, string> env = 7;
   bool distribute = 8;
 }

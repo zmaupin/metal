@@ -27,12 +27,13 @@ func NewCommand(db *sql.DB) *Command {
 }
 
 // Create a Command record
-func (c *Command) Create(ctx context.Context, cmd string, username, fqdn string, opts ...CommandOpt) error {
+func (c *Command) Create(ctx context.Context, cmd string, username, fqdn string, timestamp int64, opts ...CommandOpt) error {
 	for _, fn := range opts {
 		fn(c)
 	}
 	c.Cmd = cmd
 	c.Username = username
+	c.Timestamp = timestamp
 
 	query := `
 	SELECT id FROM host WHERE fqdn = ?;
@@ -43,9 +44,6 @@ func (c *Command) Create(ctx context.Context, cmd string, username, fqdn string,
 		return err
 	}
 	c.HostID = hostID
-
-	timestamp := time.Now().Unix()
-	c.Timestamp = timestamp
 
 	statement := `
 	INSERT INTO command (cmd, username, host_id, timestamp)

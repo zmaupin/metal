@@ -17,13 +17,6 @@ type User struct {
 // UserOpt option for a new User
 type UserOpt func(*User)
 
-// WithUsername sets the optional FirstName
-func WithUsername(name string) UserOpt {
-	return func(u *User) {
-		u.Username = name
-	}
-}
-
 // WithUserFirstName sets the optional FirstName
 func WithUserFirstName(name string) UserOpt {
 	return func(u *User) {
@@ -52,7 +45,7 @@ func NewUser(db *sql.DB) *User {
 
 // Create a new User
 func (u *User) Create(ctx context.Context, username string, opts ...UserOpt) error {
-	WithUsername(username)(u)
+	u.Username = username
 	for _, fn := range opts {
 		fn(u)
 	}
@@ -61,7 +54,7 @@ func (u *User) Create(ctx context.Context, username string, opts ...UserOpt) err
 	INSERT INTO user (username, first_name, last_name, admin)
 	VALUES (?, ?, ?, ?);
   `
-	_, err := u.db.ExecContext(ctx, statement, u.Username, u.FirstName, u.LastName, u.Admin)
+	_, err := u.db.ExecContext(ctx, statement, username, u.FirstName, u.LastName, u.Admin)
 	return err
 }
 

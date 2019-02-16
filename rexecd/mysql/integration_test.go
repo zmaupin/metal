@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/metal-go/metal/config"
 	"github.com/metal-go/metal/db/mysql/migration"
@@ -99,7 +100,7 @@ func TestCommand(t *testing.T) {
 	}
 	t.Run("Create", func(t *testing.T) {
 		cmd := NewCommand(db)
-		if err := cmd.Create(context.Background(), "echo hello world", "test-user", "test-host"); err != nil {
+		if err := cmd.Create(context.Background(), "echo hello world", "test-user", "test-host", time.Now().Unix()); err != nil {
 			t.Fatal(err)
 		}
 		var size int
