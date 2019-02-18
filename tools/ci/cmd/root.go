@@ -72,6 +72,5 @@ func buildPaths() []string {
 			paths = append(paths, path)
 		}
 	}
-	fmt.Println(paths)
 	return paths
 }

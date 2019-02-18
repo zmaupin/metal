@@ -3,7 +3,9 @@ package lib
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"time"
 
 	docker "docker.io/go-docker"
@@ -77,7 +79,11 @@ func (s *SSHDWorker) Setup(ctx context.Context) error {
 }
 
 func (s *SSHDWorker) pullImage(ctx context.Context) error {
-	_, err := s.docker.ImagePull(ctx, "panubo/sshd", types.ImagePullOptions{})
+	reader, err := s.docker.ImagePull(ctx, "panubo/sshd:latest", types.ImagePullOptions{})
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(os.Stdout, reader)
 	return err
 }
 

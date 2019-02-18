@@ -72,7 +72,7 @@ func (m *MySQLWorker) net(ctx context.Context) (string, error) {
 }
 
 func (m *MySQLWorker) runContainer(ctx context.Context) error {
-	reader, err := m.docker.ImagePull(ctx, "mysql", types.ImagePullOptions{})
+	reader, err := m.docker.ImagePull(ctx, "mysql:latest", types.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
