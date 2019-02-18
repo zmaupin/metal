@@ -86,7 +86,7 @@ func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConn
 	}
 
 	// Build sshConfig
-	sshConfig, err := rexecd.NewSSHClientConfig(c.GetUsername(), c.GetPrivateKey(), host.PublicKey, host.KeyType)
+	sshConfig, err := rexecd.NewSSHClientConfig(c.GetUsername(), c.GetPrivateKey(), host.PublicKey)
 	if err != nil {
 		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c, t))
 		return
@@ -173,7 +173,7 @@ func (m *Server) RegisterHost(ctx context.Context, r *proto_rexecd.RegisterHostR
 ) {
 	host := NewHost(m.db)
 	id, err := host.Create(ctx, r.GetFqdn(), WithHostPort(r.GetPort()),
-		WithHostPublicKey(r.GetPublicKey()), WithHostKeyType(r.GetKeyType()))
+		WithHostPublicKey(r.GetPublicKey()))
 	return &proto_rexecd.RegisterHostResponse{Id: id}, err
 }
 

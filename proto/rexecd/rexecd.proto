@@ -13,23 +13,11 @@ message RegisterHostRequest {
   string port = 2;
   bytes  private_key = 3;
   bytes  public_key = 4;
-  KeyType key_type = 5;
 }
 
 message HostConnect {
   string fqdn = 1;
   string port = 2;
-}
-
-enum KeyType {
-  ssh_rsa = 0;
-  rsa_sha2_256 = 1;
-  rsa_sha2_512 = 2;
-  ssh_dss = 3;
-  ecdsa_sha2_nistp256 = 4;
-  ecdsa_sha2_nistp384 = 5;
-  ecdsa_sha2_nistp521 = 6;
-  ssh_ed25519 = 7;
 }
 
 message RegisterHostResponse {

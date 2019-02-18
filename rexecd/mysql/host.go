@@ -3,9 +3,6 @@ package mysql
 import (
 	"context"
 	"database/sql"
-
-	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
-	"github.com/metal-go/metal/rexecd"
 )
 
 // Host model
@@ -14,7 +11,6 @@ type Host struct {
 	FQDN      string
 	Port      string
 	PublicKey []byte
-	KeyType   proto_rexecd.KeyType
 	db        *sql.DB
 }
 
@@ -42,13 +38,6 @@ func WithHostPublicKey(key []byte) HostOpt {
 	}
 }
 
-// WithHostKeyType adds the keytype to the Host
-func WithHostKeyType(keyType proto_rexecd.KeyType) HostOpt {
-	return func(h *Host) {
-		h.KeyType = keyType
-	}
-}
-
 // NewHost returns a new host
 func NewHost(db *sql.DB) *Host {
 	h := &Host{db: db}
@@ -65,9 +54,9 @@ func (h *Host) Create(ctx context.Context, fqdn string, opts ...HostOpt) (id int
 		fn(h)
 	}
 	statement := `
-	INSERT INTO host (fqdn, port, public_key, key_type) VALUES (?, ?, ?, ?);
+	INSERT INTO host (fqdn, port, public_key) VALUES (?, ?, ?);
   `
-	result, err := h.db.ExecContext(ctx, statement, h.FQDN, h.Port, h.PublicKey, rexecd.KeyTypeKey(h.KeyType))
+	result, err := h.db.ExecContext(ctx, statement, h.FQDN, h.Port, h.PublicKey)
 	if err != nil {
 		return int64(0), err
 	}
@@ -77,22 +66,20 @@ func (h *Host) Create(ctx context.Context, fqdn string, opts ...HostOpt) (id int
 // Read gets Host info
 func (h *Host) Read(ctx context.Context, fqdn string) error {
 	query := `
-	SELECT id, fqdn, port, public_key, key_type FROM host WHERE fqdn = ?;
+	SELECT id, fqdn, port, public_key FROM host WHERE fqdn = ?;
   `
 	row := h.db.QueryRowContext(ctx, query, fqdn)
 
 	var id int64
 	var port string
 	var publicKey []byte
-	var keyType string
 
-	if err := row.Scan(&id, &fqdn, &port, &publicKey, &keyType); err != nil {
+	if err := row.Scan(&id, &fqdn, &port, &publicKey); err != nil {
 		return err
 	}
 	h.ID = id
 	h.Port = port
 	h.PublicKey = publicKey
-	h.KeyType = proto_rexecd.KeyType(proto_rexecd.KeyType_value[keyType])
 	h.FQDN = fqdn
 	return nil
 }

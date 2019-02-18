@@ -2,28 +2,27 @@ package rexecd
 
 import (
 	"golang.org/x/crypto/ssh"
-
-	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
 )
 
 // NewSSHClientConfig builds an ssh.ClientConfig based on the given
 // proto_rexecd.RegisterUserRequest and proto_rexecd.RegisterHostRequest. This
 // will enforce FixedHostKey checking.
-func NewSSHClientConfig(username string, privateUserKey, publicHostKey []byte, hostKeyType proto_rexecd.KeyType) (*ssh.ClientConfig, error) {
-	key, _, _, _, err := ssh.ParseAuthorizedKey(publicHostKey)
+func NewSSHClientConfig(username string, privateUserKey, publicHostKey []byte) (*ssh.ClientConfig, error) {
+	publicKey, _, _, _, err := ssh.ParseAuthorizedKey(publicHostKey)
 	if err != nil {
-		return &ssh.ClientConfig{}, err
+		return nil, err
 	}
-	hostKeyCallback := ssh.FixedHostKey(key)
+	hostKeyCallback := ssh.FixedHostKey(publicKey)
 	authMethod, err := BuildAuthMethod(privateUserKey)
 	if err != nil {
-		return &ssh.ClientConfig{}, err
+		return nil, err
 	}
 	// keyType := strings.Replace(proto_rexecd.KeyType_name[int32(hostKeyType)], "_", "-", -1)
 	return &ssh.ClientConfig{
-		User:            username,
-		Auth:            []ssh.AuthMethod{authMethod},
-		HostKeyCallback: hostKeyCallback,
+		User:              username,
+		Auth:              []ssh.AuthMethod{authMethod},
+		HostKeyCallback:   hostKeyCallback,
+		HostKeyAlgorithms: []string{publicKey.Type()},
 	}, nil
 }
 

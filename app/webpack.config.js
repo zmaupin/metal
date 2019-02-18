@@ -2,13 +2,18 @@ const path = require('path');
 
 module.exports = {
   entry: path.resolve('src', 'index.tsx'),
-  mode: 'production',
+  mode: 'development',
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist')
   },
   // Enable sourcemaps for debugging webpack's output.
   devtool: 'source-map',
+  devServer: {
+   contentBase: path.join(__dirname, 'dist'),
+   compress: true,
+   port: 9000
+ }
   resolve: {
     // Add '.ts' and '.tsx' as resolvable extensions.
     extensions: ['.ts', '.tsx', '.js', '.json']
@@ -31,7 +36,8 @@ module.exports = {
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
         loader: "file-loader"
-      }
+      },
+      { test: /\.tsx$/, enforce: 'pre', use: [ { loader: 'tslint-loader' } ] },
     ]
   },
 };

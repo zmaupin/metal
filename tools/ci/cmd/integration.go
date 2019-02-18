@@ -22,9 +22,11 @@ type integrationConfig struct {
 	worker worker.Interface
 }
 
-var integrationSuite = []integrationConfig{
-	integrationConfig{name: "mysql", worker: worker.Func(func(ctx context.Context, ch chan error) {
-		testArgs := append(baseIntegrationArgs, "-tags", "mysql", "-p", "1")
+// Return a worker.Func that runs the integration tests for the given build tag.
+// Each test is executed serially to account for setup and teardown of resources
+func integrationWorkerFuncFactory() worker.Func {
+	return worker.Func(func(ctx context.Context, ch chan error) {
+		testArgs := append(baseIntegrationArgs, "-tags", "integration", "-p", "1")
 		testArgs = append(testArgs, buildPaths()...)
 		cmd := exec.CommandContext(ctx, "go", testArgs...)
 		cmd.Stdout = os.Stdout
@@ -33,7 +35,7 @@ var integrationSuite = []integrationConfig{
 			ch <- err
 			return
 		}
-	})},
+	})
 }
 
 var integrationCmd = &cobra.Command{
@@ -43,17 +45,14 @@ var integrationCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := with.Timeout(worker.Func(func(ctx context.Context, ch chan error) {
 			fmt.Println(banner("Test Integration Stage"))
-			for _, suite := range integrationSuite {
-				fmt.Printf(heading(suite.name))
-				suite.worker.Work(ctx, ch)
-				select {
-				case err := <-ch:
-					if err != nil {
-						log.Fatal(err)
-					}
-				default:
-					ch <- nil
+			integrationWorkerFuncFactory().Work(ctx, ch)
+			select {
+			case err := <-ch:
+				if err != nil {
+					log.Fatal(err)
 				}
+			default:
+				ch <- nil
 			}
 		}), time.Duration(time.Second*integrationTimeoutSec))
 		if err != nil {

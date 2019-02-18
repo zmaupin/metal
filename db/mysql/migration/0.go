@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS host (
   fqdn        VARCHAR(63) NOT NULL UNIQUE,
   port        VARCHAR(5),
   public_key  BLOB,
-  key_type    VARCHAR(30),
 
   PRIMARY KEY (id),
   INDEX USING BTREE (fqdn)

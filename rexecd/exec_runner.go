@@ -18,20 +18,13 @@ type ExecRunner struct {
 	stderrHandler BytesLineHandler
 }
 
-// ExecRunnerOpt is an option for an ExecRunner
-type ExecRunnerOpt func(*ExecRunner)
-
 // NewExecRunner returns a pointer to an ExecRunner
-func NewExecRunner(cmd string, sshSession *ssh.Session, stdoutHandler BytesLineHandler, stderrHandler BytesLineHandler, opts ...ExecRunnerOpt) *ExecRunner {
+func NewExecRunner(cmd string, sshSession *ssh.Session, stdoutHandler BytesLineHandler, stderrHandler BytesLineHandler) *ExecRunner {
 	runner := &ExecRunner{
 		cmd:           cmd,
 		sshSession:    sshSession,
 		stdoutHandler: stdoutHandler,
 		stderrHandler: stderrHandler,
-	}
-
-	for _, fn := range opts {
-		fn(runner)
 	}
 
 	return runner

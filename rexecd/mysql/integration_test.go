@@ -1,4 +1,4 @@
-// +build mysql
+// +build integration
 
 package mysql
 
@@ -10,7 +10,6 @@ import (
 
 	"github.com/metal-go/metal/config"
 	"github.com/metal-go/metal/db/mysql/migration"
-	proto_rexecd "github.com/metal-go/metal/proto/rexecd"
 	"github.com/metal-go/metal/test/lib"
 )
 
@@ -28,8 +27,7 @@ func TestHost(t *testing.T) {
 	t.Run("Create", func(t *testing.T) {
 		host := NewHost(db)
 
-		id, err := host.Create(context.Background(), "test-host", WithHostKeyType(proto_rexecd.KeyType_rsa_sha2_512),
-			WithHostPublicKey([]byte{}))
+		id, err := host.Create(context.Background(), "test-host", WithHostPublicKey([]byte{}))
 		if err != nil {
 			t.Fatal(err)
 		}

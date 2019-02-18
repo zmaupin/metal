@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var packages = []string{"db", "rexecd", "util"}
+var packages = []string{"db/mysql", "db/mysql/migration", "rexecd", "rexecd/mysql", "util/user", "util/with", "util/worker"}
 var pkgError = fmt.Sprintf("Invalid target package, options %s\n", strings.Join(packages, " "))
 var timeoutFlagDesc = "timeout in seconds"
 
@@ -64,11 +64,14 @@ func validatePkgArg() error {
 func buildPaths() []string {
 	paths := []string{}
 	if pkg != "" {
-		paths = append(paths, filepath.Join("github.com", "metal-go", "metal", fmt.Sprintf("%s...", pkg)))
+		path := filepath.Join("github.com", "metal-go", "metal", pkg)
+		paths = append(paths, path)
 	} else {
 		for _, p := range packages {
-			paths = append(paths, filepath.Join("github.com", "metal-go", "metal", fmt.Sprintf("%s...", p)))
+			path := filepath.Join("github.com", "metal-go", "metal", p)
+			paths = append(paths, path)
 		}
 	}
+	fmt.Println(paths)
 	return paths
 }
