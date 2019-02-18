@@ -11,6 +11,9 @@ install:
   - unzip -p protoc-3.6.1-linux-x86_64.zip bin/protoc > protoc
   - chmod +x protoc
   - sudo mv protoc /usr/local/bin/protoc
+  - mkdir -p ~/.ssh
+  - chmod 0700 ~/.ssh
+  - ssh-keygen -f ~/.ssh/id_rsa
 
 test_script:
   - mkdir -p $GOPATH/src/github.com/$APPVEYOR_REPO_NAME
