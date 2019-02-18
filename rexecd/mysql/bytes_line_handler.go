@@ -5,6 +5,44 @@ import "context"
 // BytesLineHandlerType type
 type BytesLineHandlerType int
 
+// // BytesLineQueue is a queue of bytes
+// type BytesLineQueue struct {
+// 	data  []byte
+// 	input chan []byte
+// 	done  chan bool
+// }
+//
+// // NewBytesLineQueue returns a new BytesLineQueue
+// func NewBytesLineQueue(max uint64) *BytesLineQueue {
+// 	return &BytesLineQueue{
+// 		data:  make([]byte, 0, max),
+// 		input: make(chan []byte),
+// 		done:  make(chan bool),
+// 	}
+// }
+//
+// func (b *BytesLineQueue) enqueue() {
+// 	go func() {
+// 		for {
+// 			select {
+// 			case d := <-b.input:
+// 				b.data = append(b.data, d...)
+// 			case <-b.done:
+// 				break
+// 			}
+// 		}
+// 	}()
+// }
+//
+// func (b *BytesLineQueue) Dequeue() []byte {
+//
+// }
+//
+// // Enqueue pushes bytes onto the queue
+// func (b *BytesLineQueue) Enqueue(d []byte) {
+// 	b.input <- d
+// }
+
 const (
 	// MySQLStdout type
 	MySQLStdout BytesLineHandlerType = iota

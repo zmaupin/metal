@@ -74,21 +74,21 @@ func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConn
 	// Load Host
 	host := NewHost(m.db)
 	if err := host.Read(ctx, hostConnect.GetFqdn()); err != nil {
-		s.Send(m.exitStatus(ctx, nil, host, err, 1, wg, c, t))
+		s.Send(m.exitStatus(ctx, nil, host, err, -1, wg, c, t))
 		return
 	}
 
 	// Load and create a new Command that can update the data store
 	command := NewCommand(m.db)
 	if err := command.Create(ctx, c.GetCmd(), c.GetUsername(), hostConnect.GetFqdn(), t.Unix()); err != nil {
-		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c, t))
+		s.Send(m.exitStatus(ctx, command, host, err, -1, wg, c, t))
 		return
 	}
 
 	// Build sshConfig
 	sshConfig, err := rexecd.NewSSHClientConfig(c.GetUsername(), c.GetPrivateKey(), host.PublicKey)
 	if err != nil {
-		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c, t))
+		s.Send(m.exitStatus(ctx, command, host, err, -1, wg, c, t))
 		return
 	}
 
@@ -98,7 +98,7 @@ func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConn
 		rexecd.WithSSHSessionBuilderEnv(c.GetEnv())).Build()
 
 	if err != nil {
-		s.Send(m.exitStatus(ctx, command, host, err, 1, wg, c, t))
+		s.Send(m.exitStatus(ctx, command, host, err, -1, wg, c, t))
 		return
 	}
 
@@ -141,11 +141,11 @@ func (m *Server) exitStatus(ctx context.Context, command *Command, host *Host, e
 	if exitCode == 0 {
 		log.WithFields(logFields).Info("command execution succeeded")
 	} else {
-		log.WithFields(logFields).Info("command execution failed")
+		log.WithFields(logFields).Error("command execution failed")
 	}
 
 	if command != nil {
-		if e := command.SetExitCode(ctx, exitCode); err != nil {
+		if e := command.SetExitCode(ctx, exitCode); e != nil {
 			log.WithFields(logFields).Error(e)
 		}
 	}
@@ -156,7 +156,7 @@ func (m *Server) exitStatus(ctx context.Context, command *Command, host *Host, e
 	if err == nil {
 		errMsg = ""
 	} else {
-		err.Error()
+		errMsg = err.Error()
 	}
 
 	return &proto_rexecd.CommandResponse{

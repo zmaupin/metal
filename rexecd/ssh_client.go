@@ -1,6 +1,8 @@
 package rexecd
 
 import (
+	"bytes"
+
 	"golang.org/x/crypto/ssh"
 )
 
@@ -8,32 +10,18 @@ import (
 // proto_rexecd.RegisterUserRequest and proto_rexecd.RegisterHostRequest. This
 // will enforce FixedHostKey checking.
 func NewSSHClientConfig(username string, privateUserKey, publicHostKey []byte) (*ssh.ClientConfig, error) {
-	publicKey, _, _, _, err := ssh.ParseAuthorizedKey(publicHostKey)
+	publicKey, _, _, _, err := ssh.ParseAuthorizedKey(bytes.TrimSpace(publicHostKey))
 	if err != nil {
 		return nil, err
 	}
-	hostKeyCallback := ssh.FixedHostKey(publicKey)
-	authMethod, err := BuildAuthMethod(privateUserKey)
+	signer, err := ssh.ParsePrivateKey(bytes.TrimSpace(privateUserKey))
 	if err != nil {
 		return nil, err
 	}
-	// keyType := strings.Replace(proto_rexecd.KeyType_name[int32(hostKeyType)], "_", "-", -1)
 	return &ssh.ClientConfig{
 		User:              username,
-		Auth:              []ssh.AuthMethod{authMethod},
-		HostKeyCallback:   hostKeyCallback,
+		Auth:              []ssh.AuthMethod{ssh.PublicKeys(signer)},
+		HostKeyCallback:   ssh.InsecureIgnoreHostKey(),
 		HostKeyAlgorithms: []string{publicKey.Type()},
 	}, nil
-}
-
-// BuildAuthMethod returns an ssh.AuthMethod from the given private key presented
-// as a byte array
-func BuildAuthMethod(userPrivateKey []byte) (ssh.AuthMethod, error) {
-	var sshAuthMethod ssh.AuthMethod
-	signer, err := ssh.ParsePrivateKey(userPrivateKey)
-	if err != nil {
-		return sshAuthMethod, err
-	}
-	sshAuthMethod = ssh.PublicKeys(signer)
-	return sshAuthMethod, nil
 }

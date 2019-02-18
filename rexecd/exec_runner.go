@@ -3,7 +3,9 @@ package rexecd
 import (
 	"bufio"
 	"context"
+	"sync"
 
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -37,49 +39,59 @@ func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 	// Setup stdout and stderr readers and scanners
 	outReader, err := e.sshSession.StdoutPipe()
 	if err != nil {
-		return 1, err
+		return -1, err
 	}
 	errReader, err := e.sshSession.StderrPipe()
 	if err != nil {
-		return 1, err
+		return -1, err
 	}
-	outScanner := bufio.NewScanner(outReader)
-	errScanner := bufio.NewScanner(errReader)
 
-	// Feed bytes of lines to the given pipeline
-	feeder := func(scanner *bufio.Scanner, handler BytesLineHandler) {
+	// Configure Scanners for stdout and stdin
+	outScanner := bufio.NewScanner(outReader)
+	outScanner.Buffer([]byte{}, 1e+9)
+	errScanner := bufio.NewScanner(errReader)
+	errScanner.Buffer([]byte{}, 1e+9)
+
+	// Create a waitgroup stdout and stderr processing
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	// Feed bytes of lines to the given handler
+	feeder := func(scanner *bufio.Scanner, handler BytesLineHandler, w *sync.WaitGroup) {
 		for scanner.Scan() {
-			line := append(scanner.Bytes(), byte('\n'))
-			handler.Handle(ctx, line)
+			b := scanner.Bytes()
+			e := handler.Handle(ctx, b)
+			for {
+				if err != nil {
+					log.Error(e)
+					e = handler.Handle(ctx, b)
+				} else {
+					break
+				}
+			}
 		}
+		w.Done()
 	}
-	go func() { feeder(outScanner, e.stdoutHandler) }()
-	go func() { feeder(errScanner, e.stderrHandler) }()
+
+	// Injest bytes
+	go func() { feeder(outScanner, e.stdoutHandler, wg) }()
+	go func() { feeder(errScanner, e.stderrHandler, wg) }()
 
 	// Run it
 	err = e.sshSession.Run(e.cmd)
 
 	// Check for errors
-	if err == nil {
-		return int64(0), nil
+	if err != nil {
+		return int64(-1), err
 	}
+
+	// Wait for the ingestors to finish
+	wg.Wait()
 
 	exitErr, ok := err.(*ssh.ExitError)
 	if ok {
 		return int64(exitErr.Waitmsg.ExitStatus()), nil
 	}
 
-	err = e.sshSession.Wait()
-
-	// Check for errors
-	if err == nil {
-		return int64(0), nil
-	}
-
-	exitErr, ok = err.(*ssh.ExitError)
-	if ok {
-		return int64(exitErr.Waitmsg.ExitStatus()), nil
-	}
-
-	return 1, err
+	return 0, nil
 }

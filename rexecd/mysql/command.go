@@ -3,18 +3,23 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	"time"
+	"errors"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Command model
 type Command struct {
-	ID        int64
-	Cmd       string
-	Username  string
-	HostID    int64
-	Timestamp int64
-	ExitCode  int64
-	db        *sql.DB
+	ID           int64
+	Cmd          string
+	Username     string
+	HostID       int64
+	Timestamp    int64
+	ExitCode     int64
+	StdoutLineNo uint64
+	StderrLineNo uint64
+
+	db *sql.DB
 }
 
 // CommandOpt is an option for a NewCommand
@@ -61,21 +66,45 @@ func (c *Command) Create(ctx context.Context, cmd string, username, fqdn string,
 // AddStdoutLine adds line to command_stdout
 func (c *Command) AddStdoutLine(ctx context.Context, b []byte) error {
 	statement := `
-	INSERT INTO command_stdout (id, timestamp, line)
+	INSERT INTO command_stdout (id, line_no, line)
 	VALUES (?, ?, ?);
 	`
-	_, err := c.db.ExecContext(ctx, statement, c.ID, time.Now().Unix(), b)
-	return err
+	c.StdoutLineNo++
+	result, err := c.db.ExecContext(ctx, statement, c.ID, c.StdoutLineNo, b)
+	if err != nil {
+		return err
+	}
+	numRows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if numRows != 1 {
+		return errors.New("row not inserted")
+	}
+	log.Debugf("wrote %d stdout lines", c.StdoutLineNo)
+	return nil
 }
 
 // AddStderrLine adds line to command_stderr
 func (c *Command) AddStderrLine(ctx context.Context, b []byte) error {
 	statement := `
-	INSERT INTO command_stderr (id, timestamp, line)
+	INSERT INTO command_stderr (id, line_no, line)
 	VALUES (?, ?, ?)
 	`
-	_, err := c.db.ExecContext(ctx, statement, c.ID, time.Now().Unix(), b)
-	return err
+	c.StderrLineNo++
+	result, err := c.db.ExecContext(ctx, statement, c.ID, c.StderrLineNo, b)
+	if err != nil {
+		return err
+	}
+	numRows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if numRows != 1 {
+		return errors.New("row not inserted")
+	}
+	log.Debugf("wrote %d stderr lines", c.StderrLineNo)
+	return nil
 }
 
 // SetExitCode sets the exit code on command

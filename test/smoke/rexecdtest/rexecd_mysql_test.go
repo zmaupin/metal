@@ -114,7 +114,7 @@ func TestRexecd(t *testing.T) {
 		fmt.Printf("waiting for rexecd to start: %d\n", count)
 		time.Sleep(1 * time.Second)
 	}
-	commandRequest := &proto_rexecd.CommandRequest{Cmd: "/bin/true", Username: "dev"}
+	commandRequest := &proto_rexecd.CommandRequest{Cmd: "bash -c \"find / -type f\"", Username: "root"}
 	container, found, err := findContainer(ctx, client, sshdHost)
 	if err != nil {
 		t.Fatal(err)
@@ -126,7 +126,7 @@ func TestRexecd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	port := containerJSON.NetworkSettings.NetworkSettingsBase.Ports["22/tcp"][0].HostPort
+	address := containerJSON.NetworkSettings.Networks["bridge"].IPAddress
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,10 +135,9 @@ func TestRexecd(t *testing.T) {
 		t.Fatal(err)
 	}
 	registerHostRequest := &proto_rexecd.RegisterHostRequest{
-		Fqdn:      "127.0.0.1",
-		Port:      port,
+		Fqdn:      address,
+		Port:      "22",
 		PublicKey: publicHostRSA,
-		KeyType:   proto_rexecd.KeyType_ssh_rsa,
 	}
 	_, err = rexecdClient.RegisterHost(ctx, registerHostRequest)
 	if err != nil {
@@ -146,8 +145,8 @@ func TestRexecd(t *testing.T) {
 	}
 
 	commandRequest.HostConnect = append(commandRequest.GetHostConnect(), &proto_rexecd.HostConnect{
-		Fqdn: "127.0.0.1",
-		Port: port,
+		Fqdn: address,
+		Port: "22",
 	})
 
 	privatePath, err := user.Expand("~/.ssh/id_rsa")
@@ -160,7 +159,7 @@ func TestRexecd(t *testing.T) {
 	}
 	commandRequest.PrivateKey = privateKey
 	registerUserRequest := &proto_rexecd.RegisterUserRequest{
-		Username: "dev",
+		Username: "root",
 	}
 	_, err = rexecdClient.RegisterUser(ctx, registerUserRequest)
 	if err != nil {

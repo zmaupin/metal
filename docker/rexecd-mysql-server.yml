@@ -17,24 +17,15 @@ services:
       - METAL_REXECD_SERVER_TYPE=mysql
     links:
       - db
+
   host01:
     network_mode: bridge
     ports:
       - "2222:22"
     image: panubo/sshd
     volumes:
-      - ~/.ssh/id_rsa.pub:/etc/authorized_keys/dev
-    environment:
-      - SSH_USERS=dev:1001:1001
-  host02:
-    network_mode: bridge
-    ports:
-      - "4444:22"
-    image: panubo/sshd
-    volumes:
-      - ~/.ssh/id_rsa.pub:/etc/authorized_keys/dev
-    environment:
-      - SSH_USERS=dev:1001:1001
+      - ~/.ssh/id_rsa.pub:/root/.ssh/authorized_keys
+
   db:
     image: mysql
     network_mode: bridge
