@@ -60,7 +60,7 @@ func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 	feeder := func(scanner *bufio.Scanner, handler BytesLineHandler, w *sync.WaitGroup) {
 		for scanner.Scan() {
 			b := scanner.Bytes()
-			b = append(b, []byte("\n")...)
+			b = append(b, '\n')
 			e := handler.Handle(ctx, b)
 			for {
 				if err != nil {
