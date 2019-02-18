@@ -1,47 +1,11 @@
 package mysql
 
-import "context"
+import (
+	"context"
+)
 
 // BytesLineHandlerType type
 type BytesLineHandlerType int
-
-// // BytesLineQueue is a queue of bytes
-// type BytesLineQueue struct {
-// 	data  []byte
-// 	input chan []byte
-// 	done  chan bool
-// }
-//
-// // NewBytesLineQueue returns a new BytesLineQueue
-// func NewBytesLineQueue(max uint64) *BytesLineQueue {
-// 	return &BytesLineQueue{
-// 		data:  make([]byte, 0, max),
-// 		input: make(chan []byte),
-// 		done:  make(chan bool),
-// 	}
-// }
-//
-// func (b *BytesLineQueue) enqueue() {
-// 	go func() {
-// 		for {
-// 			select {
-// 			case d := <-b.input:
-// 				b.data = append(b.data, d...)
-// 			case <-b.done:
-// 				break
-// 			}
-// 		}
-// 	}()
-// }
-//
-// func (b *BytesLineQueue) Dequeue() []byte {
-//
-// }
-//
-// // Enqueue pushes bytes onto the queue
-// func (b *BytesLineQueue) Enqueue(d []byte) {
-// 	b.input <- d
-// }
 
 const (
 	// MySQLStdout type
@@ -54,6 +18,8 @@ const (
 type BytesLineHandler struct {
 	command     *Command
 	handlerType BytesLineHandlerType
+	stdout      []byte
+	stderr      []byte
 }
 
 // NewBytesLineHandler returns a new BytesLineHandler
@@ -61,6 +27,8 @@ func NewBytesLineHandler(command *Command, handlerType BytesLineHandlerType) *By
 	return &BytesLineHandler{
 		command:     command,
 		handlerType: handlerType,
+		stdout:      []byte{},
+		stderr:      []byte{},
 	}
 }
 
@@ -68,10 +36,28 @@ func NewBytesLineHandler(command *Command, handlerType BytesLineHandlerType) *By
 func (m *BytesLineHandler) Handle(ctx context.Context, b []byte) error {
 	switch m.handlerType {
 	case MySQLStdout:
-		return m.command.AddStdoutLine(ctx, b)
+		m.stdout = append(m.stdout, b...)
 	case MySQLStderr:
-		return m.command.AddStderrLine(ctx, b)
-	default:
-		return nil
+		m.stderr = append(m.stderr, b...)
 	}
+	return nil
+}
+
+// Finish wraps up the handling of bytes
+func (m *BytesLineHandler) Finish(ctx context.Context) error {
+	switch m.handlerType {
+	case MySQLStdout:
+		if len(m.stdout) > 0 {
+			if err := m.command.AddStdout(ctx, m.stdout); err != nil {
+				return err
+			}
+		}
+	case MySQLStderr:
+		if len(m.stderr) > 0 {
+			if err := m.command.AddStderr(ctx, m.stderr); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

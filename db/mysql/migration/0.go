@@ -37,30 +37,12 @@ CREATE TABLE IF NOT EXISTS command (
   username  VARCHAR(30) UNIQUE NOT NULL,
   host_id   BIGINT UNSIGNED NOT NULL,
   timestamp BIGINT UNSIGNED NOT NULL,
+  stdout    LONGBLOB,
+  stderr    LONGBLOB,
   exit_code SMALLINT,
 
   PRIMARY KEY (id),
   FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE,
   FOREIGN KEY (host_id)  REFERENCES host(id)       ON DELETE CASCADE
-);
-
-# multi-valued attribute
-CREATE TABLE IF NOT EXISTS command_stdout (
-  id        BIGINT UNSIGNED NOT NULL,
-  line_no   BIGINT UNSIGNED NOT NULL,
-  line      BLOB NOT NULL,
-
-  FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,
-  PRIMARY KEY (id, line_no)
-);
-
-# multi-valued attribute
-CREATE TABLE IF NOT EXISTS command_stderr (
-  id        BIGINT UNSIGNED NOT NULL,
-  line_no   BIGINT UNSIGNED NOT NULL,
-  line      BLOB NOT NULL,
-
-  FOREIGN KEY (id) REFERENCES command(id) ON DELETE CASCADE,
-  PRIMARY KEY (id, line_no)
 );
 `

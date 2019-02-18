@@ -7,6 +7,7 @@ import (
 // BytesLineHandler handles a []byte
 type BytesLineHandler interface {
 	Handle(ctx context.Context, b []byte) error
+	Finish(ctx context.Context) error
 }
 
 // BytesLineMiddleware enables response wrapping

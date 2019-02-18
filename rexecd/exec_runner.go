@@ -60,6 +60,7 @@ func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 	feeder := func(scanner *bufio.Scanner, handler BytesLineHandler, w *sync.WaitGroup) {
 		for scanner.Scan() {
 			b := scanner.Bytes()
+			b = append(b, []byte("\n")...)
 			e := handler.Handle(ctx, b)
 			for {
 				if err != nil {
@@ -87,6 +88,14 @@ func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 
 	// Wait for the ingestors to finish
 	wg.Wait()
+
+	if err = e.stdoutHandler.Finish(ctx); err != nil {
+		return -1, err
+	}
+
+	if err = e.stderrHandler.Finish(ctx); err != nil {
+		return -1, err
+	}
 
 	exitErr, ok := err.(*ssh.ExitError)
 	if ok {

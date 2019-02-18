@@ -3,21 +3,16 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	"errors"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // Command model
 type Command struct {
-	ID           int64
-	Cmd          string
-	Username     string
-	HostID       int64
-	Timestamp    int64
-	ExitCode     int64
-	StdoutLineNo uint64
-	StderrLineNo uint64
+	ID        int64
+	Cmd       string
+	Username  string
+	HostID    int64
+	Timestamp int64
+	ExitCode  int64
 
 	db *sql.DB
 }
@@ -63,48 +58,26 @@ func (c *Command) Create(ctx context.Context, cmd string, username, fqdn string,
 	return err
 }
 
-// AddStdoutLine adds line to command_stdout
-func (c *Command) AddStdoutLine(ctx context.Context, b []byte) error {
+// AddStdout adds stdout
+func (c *Command) AddStdout(ctx context.Context, b []byte) error {
 	statement := `
-	INSERT INTO command_stdout (id, line_no, line)
-	VALUES (?, ?, ?);
+	UPDATE command
+	SET stdout = ?
+	WHERE id = ?;
 	`
-	c.StdoutLineNo++
-	result, err := c.db.ExecContext(ctx, statement, c.ID, c.StdoutLineNo, b)
-	if err != nil {
-		return err
-	}
-	numRows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if numRows != 1 {
-		return errors.New("row not inserted")
-	}
-	log.Debugf("wrote %d stdout lines", c.StdoutLineNo)
-	return nil
+	_, err := c.db.ExecContext(ctx, statement, b, c.ID)
+	return err
 }
 
-// AddStderrLine adds line to command_stderr
-func (c *Command) AddStderrLine(ctx context.Context, b []byte) error {
+// AddStderr adds stderr
+func (c *Command) AddStderr(ctx context.Context, b []byte) error {
 	statement := `
-	INSERT INTO command_stderr (id, line_no, line)
-	VALUES (?, ?, ?)
+	UPDATE command
+	SET stderr = ?
+	WHERE id = ?;
 	`
-	c.StderrLineNo++
-	result, err := c.db.ExecContext(ctx, statement, c.ID, c.StderrLineNo, b)
-	if err != nil {
-		return err
-	}
-	numRows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if numRows != 1 {
-		return errors.New("row not inserted")
-	}
-	log.Debugf("wrote %d stderr lines", c.StderrLineNo)
-	return nil
+	_, err := c.db.ExecContext(ctx, statement, b, c.ID)
+	return err
 }
 
 // SetExitCode sets the exit code on command
