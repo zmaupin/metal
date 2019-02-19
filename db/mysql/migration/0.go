@@ -3,8 +3,7 @@ package migration
 var _0 = `
 # entity set
 CREATE TABLE IF NOT EXISTS instance (
-  # FQDN:PORT
-  net VARCHAR(67),
+  net     VARCHAR(67), # FQDN:PORT
 
   PRIMARY KEY (net)
 );
@@ -32,14 +31,14 @@ CREATE TABLE IF NOT EXISTS user (
 
 # entity set
 CREATE TABLE IF NOT EXISTS command (
-  id        SERIAL,
-  cmd       TEXT NOT NULL,
-  username  VARCHAR(30) UNIQUE NOT NULL,
-  host_id   BIGINT UNSIGNED NOT NULL,
-  timestamp BIGINT UNSIGNED NOT NULL,
-  stdout    LONGBLOB,
-  stderr    LONGBLOB,
-  exit_code SMALLINT,
+  id          SERIAL,
+  cmd         TEXT NOT NULL,
+  username    VARCHAR(30) UNIQUE NOT NULL,
+  host_id     BIGINT UNSIGNED NOT NULL,
+  timestamp   BIGINT UNSIGNED NOT NULL,
+  stdout      LONGBLOB,
+  stderr      LONGBLOB,
+  exit_code   SMALLINT,
 
   PRIMARY KEY (id),
   FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE,
