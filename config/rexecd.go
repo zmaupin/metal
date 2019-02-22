@@ -2,12 +2,14 @@ package config
 
 // Rexecd represents the global configuration for Rexecd
 type Rexecd struct {
-	Cluster           []string
-	ServerType        string
 	Address           string
-	Port              string
-	DataSourceName    string
 	CommandTimeoutSec int
+	Cluster           []string
+	DataSourceName    string
+	Port              string
+	ServerType        string
+	KafkaAddress      []string
+	KafkaVersion      string
 }
 
 // NewRexecd returns a new Rexecd configuration instance
@@ -26,11 +28,15 @@ func RexecdInit() {
 	Viper.SetDefault("address", "0.0.0.0")
 	Viper.SetDefault("port", "9000")
 	Viper.SetDefault("command_timeout_sec", 300)
+	Viper.SetDefault("kafka_version", "2.12-2.1.0")
+	Viper.SetDefault("kafka_address", "")
 	Viper.AutomaticEnv()
-	RexecdGlobal.Cluster = arrayValue(Viper.GetString("cluster"))
-	RexecdGlobal.ServerType = Viper.GetString("server_type")
 	RexecdGlobal.Address = Viper.GetString("address")
-	RexecdGlobal.Port = Viper.GetString("port")
-	RexecdGlobal.DataSourceName = Viper.GetString("data_source_name")
+	RexecdGlobal.Cluster = arrayValue(Viper.GetString("cluster"))
 	RexecdGlobal.CommandTimeoutSec = Viper.GetInt("command_timeout_sec")
+	RexecdGlobal.DataSourceName = Viper.GetString("data_source_name")
+	RexecdGlobal.KafkaAddress = arrayValue(Viper.GetString("kafka_address"))
+	RexecdGlobal.KafkaVersion = Viper.GetString("kafka_version")
+	RexecdGlobal.Port = Viper.GetString("port")
+	RexecdGlobal.ServerType = Viper.GetString("server_type")
 }

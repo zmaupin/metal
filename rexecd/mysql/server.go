@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Shopify/sarama"
 	_ "github.com/go-sql-driver/mysql" // driver
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -24,7 +25,10 @@ import (
 
 // Server driver
 type Server struct {
-	db *sql.DB
+	db                 *sql.DB
+	kafkaAdminClient   sarama.ClusterAdmin
+	kafkaAsyncProducer sarama.AsyncProducer
+	kafkaConfig        *sarama.Config
 }
 
 // New pointer to MySQL
@@ -105,8 +109,9 @@ func (m *Server) command(ctx context.Context, hostConnect *proto_rexecd.HostConn
 	defer sshSession.Close()
 
 	// Build ExecRunner
-	execRunner := rexecd.NewExecRunner(c.GetCmd(), sshSession, NewBytesLineHandler(command, MySQLStdout),
-		NewBytesLineHandler(command, MySQLStderr))
+	execRunner := rexecd.NewExecRunner(
+		c.GetCmd(), sshSession, NewBytesLineHandler(command, MySQLStdout, m.kafkaAdminClient, m.kafkaAsyncProducer),
+		NewBytesLineHandler(command, MySQLStderr, m.kafkaAdminClient, m.kafkaAsyncProducer))
 
 	// Run it
 	exitCode, err := execRunner.Run(ctx)
@@ -204,6 +209,29 @@ func (m *Server) Run(done chan bool) error {
 		log.Fatal(err)
 	}
 	m.db = db
+
+	m.kafkaConfig = sarama.NewConfig()
+
+	kafkaVersion, err := sarama.ParseKafkaVersion(config.RexecdGlobal.KafkaVersion)
+	if err != nil {
+		return err
+	}
+	m.kafkaConfig.Version = kafkaVersion
+
+	clusterAdmin, err := sarama.NewClusterAdmin(config.RexecdGlobal.KafkaAddress, m.kafkaConfig)
+	if err != nil {
+		return err
+	}
+	defer clusterAdmin.Close()
+
+	m.kafkaAdminClient = clusterAdmin
+
+	asyncProducer, err := sarama.NewAsyncProducer(config.RexecdGlobal.KafkaAddress, m.kafkaConfig)
+	if err != nil {
+		return err
+	}
+	defer asyncProducer.Close()
+	m.kafkaAsyncProducer = asyncProducer
 
 	// Open up a port and start listening with a Health and Rexecd servers
 	network := fmt.Sprintf("%s:%s", config.RexecdGlobal.Address, config.RexecdGlobal.Port)

@@ -126,7 +126,7 @@ func TestRexecd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	address := containerJSON.NetworkSettings.Networks["bridge"].IPAddress
+	address := containerJSON.NetworkSettings.Networks["docker_default"].IPAddress
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -48,9 +48,7 @@ func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 
 	// Configure Scanners for stdout and stdin
 	outScanner := bufio.NewScanner(outReader)
-	outScanner.Buffer([]byte{}, 1e+9)
 	errScanner := bufio.NewScanner(errReader)
-	errScanner.Buffer([]byte{}, 1e+9)
 
 	// Create a waitgroup stdout and stderr processing
 	wg := &sync.WaitGroup{}
@@ -62,8 +60,8 @@ func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 			b := scanner.Bytes()
 			b = append(b, '\n')
 			e := handler.Handle(ctx, b)
-			for {
-				if err != nil {
+			for i := 0; i < 10; i++ {
+				if e != nil {
 					log.Error(e)
 					e = handler.Handle(ctx, b)
 				} else {
@@ -74,7 +72,7 @@ func (e *ExecRunner) Run(ctx context.Context) (statusCode int64, err error) {
 		w.Done()
 	}
 
-	// Injest bytes
+	// InGest bytes
 	go func() { feeder(outScanner, e.stdoutHandler, wg) }()
 	go func() { feeder(errScanner, e.stderrHandler, wg) }()
 
