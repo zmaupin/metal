@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/metal-go/metal/config"
-	"github.com/metal-go/metal/rexecd/mysql"
+	"github.com/metal-go/metal/rexecd/backends/mysql"
 )
 
 var rexecdCommand = &cobra.Command{

@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var packages = []string{"db/mysql", "db/mysql/migration", "rexecd", "rexecd/mysql", "util/user", "util/with", "util/worker"}
+var packages = []string{"db/mysql", "db/mysql/migration", "rexecd", "rexecd/backends/mysql", "rexecd/api", "util/user", "util/with", "util/worker"}
 var pkgError = fmt.Sprintf("Invalid target package, options %s\n", strings.Join(packages, " "))
 var timeoutFlagDesc = "timeout in seconds"
 
