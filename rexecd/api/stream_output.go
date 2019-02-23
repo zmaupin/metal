@@ -72,6 +72,9 @@ func (s *streamOutputClient) readPump(ctx context.Context) {
 				s.done <- struct{}{}
 				return
 			}
+			if b == nil {
+				continue
+			}
 			switch messageType {
 			case websocket.TextMessage, websocket.PingMessage, websocket.PongMessage:
 				log.Errorf("unsupported message type %v", messageType)
@@ -130,8 +133,7 @@ func (s *streamOutputClient) writePump(ctx context.Context) {
 			}
 			b := s.send.Dequeue()
 			if b == nil {
-				s.done <- struct{}{}
-				return
+				continue
 			}
 
 			if err := s.ws.WriteMessage(websocket.BinaryMessage, b); err != nil {
