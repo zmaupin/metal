@@ -11,8 +11,8 @@ import (
 )
 
 var rexecdAPICommand = &cobra.Command{
-	Use:   "rexecd",
-	Short: "The remote execution service",
+	Use:   "api",
+	Short: "The remote execution service API",
 	Long: strings.TrimSpace(`
 rexecd allows gRPC clients and CLI clients to execute remote
 commands at global scale.`),
@@ -27,5 +27,5 @@ commands at global scale.`),
 }
 
 func init() {
-	rootCmd.AddCommand(rexecdAPICommand)
+	rexecdCommand.AddCommand(rexecdAPICommand)
 }
