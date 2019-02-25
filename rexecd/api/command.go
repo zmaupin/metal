@@ -13,7 +13,7 @@ import (
 
 // CommandResponse is the response from a command
 type CommandResponse struct {
-	Command []CommandJSON
+	Command []CommandJSON `json:"command"`
 }
 
 // CommandJSON is an item in a CommandResponse
