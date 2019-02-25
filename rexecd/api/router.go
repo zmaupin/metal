@@ -35,5 +35,17 @@ func Run(done chan struct{}) error {
 		ReadTimeout:  config.RexecdGlobal.APITimeout,
 		WriteTimeout: config.RexecdGlobal.APITimeout,
 	}
-	return s.ListenAndServe()
+	run := func() chan error {
+		errChan := make(chan error)
+		go func() {
+			errChan <- s.ListenAndServe()
+		}()
+		return errChan
+	}
+	select {
+	case err := <-run():
+		return err
+	case <-done:
+		return nil
+	}
 }
