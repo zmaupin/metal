@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"time"
 
@@ -19,12 +20,20 @@ func newRouter(timeout time.Duration, db *sql.DB) *mux.Router {
 }
 
 // Run is the runner for the Rexecd API server
-func Run(timeout time.Duration, db *sql.DB) error {
+func Run(done chan struct{}) error {
+	// Get and set a sql.DB
+	dsn := config.RexecdGlobal.DataSourceName + "rexecd"
+	db, err := sql.Open("mysql", dsn)
+	defer db.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	s := &http.Server{
 		Addr:         config.RexecdGlobal.APIAddress,
-		Handler:      newRouter(timeout, db),
-		ReadTimeout:  timeout,
-		WriteTimeout: timeout,
+		Handler:      newRouter(config.RexecdGlobal.APITimeout, db),
+		ReadTimeout:  config.RexecdGlobal.APITimeout,
+		WriteTimeout: config.RexecdGlobal.APITimeout,
 	}
 	return s.ListenAndServe()
 }

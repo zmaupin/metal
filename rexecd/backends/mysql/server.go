@@ -194,7 +194,7 @@ func (m *Server) RegisterUser(ctx context.Context, r *proto_rexecd.RegisterUserR
 }
 
 // Run starts the server
-func (m *Server) Run(done chan bool) error {
+func (m *Server) Run(done chan struct{}) error {
 	// Ensure desired database state
 	migrate := migration.New()
 	if err := migrate.Run(); err != nil {
