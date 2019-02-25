@@ -21,6 +21,25 @@ services:
       - kafka
       - zoo
 
+  rexecd_api:
+    build:
+      dockerfile: docker/builds/rexecd/Dockerfile
+      context: ../
+    command: /cmd api
+    ports:
+      - 8080:8080
+    volumes:
+      - "../:/go/src/github.com/metal-go/metal"
+    environment:
+      - METAL_LOG_LEVEL=debug
+      - METAL_REXECD_DATA_SOURCE_NAME=root:password@tcp(docker_db_1:3306)
+      - METAL_REXECD_KAFKA_VERSION=2.1.0
+      - METAL_REXECD_KAFKA_ADDRESS=kafka=9092
+    depends_on:
+      - db
+      - kafka
+      - zoo
+
   db:
     image: mysql
     restart: always
