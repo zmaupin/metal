@@ -12,7 +12,7 @@ module.exports = {
   devServer: {
    contentBase: path.join(__dirname, 'dist'),
    compress: true,
-   port: 9000
+   port: 8000
  }
   resolve: {
     // Add '.ts' and '.tsx' as resolvable extensions.
@@ -21,7 +21,13 @@ module.exports = {
   module: {
     rules: [
       // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-      { test: /\.tsx?$/, loader: 'awesome-typescript-loader' },
+      {
+        test: /\.tsx?$/,
+        use: [
+          { loader: 'awesome-typescript-loader' },
+          { loader: 'tslint-loader' },
+        ],
+      },
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
       { enforce: 'pre', test: /\.js$/, loader: 'source-map-loader' },
       // Load CSS
@@ -30,14 +36,13 @@ module.exports = {
         use: [
           { loader: "style-loader" },
           { loader: "css-loader" },
-          { loader: "sass-loader" }
+          { loader: "sass-loader" },
         ]
       },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
-        loader: "file-loader"
+        loader: "file-loader",
       },
-      { test: /\.tsx$/, enforce: 'pre', use: [ { loader: 'tslint-loader' } ] },
     ]
   },
 };
