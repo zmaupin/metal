@@ -3,7 +3,9 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -25,7 +27,7 @@ type CommandJSON struct {
 
 func command(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	response := CommandResponse{Command: []CommandJSON{}}
-	query, args, err := buildCommandQuery(r)
+	query, args, err := buildCommandQuery(r.Form)
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(500)
@@ -72,48 +74,50 @@ func command(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func buildCommandQuery(r *http.Request) (query string, args []interface{}, err error) {
+func buildCommandQuery(v url.Values) (query string, args []interface{}, err error) {
 	args = []interface{}{}
 	query = `
-  SELECT id, cmd, host_id, timestamp, exit_code
-  `
-	if idStr, ok := r.Form["id"]; ok {
+SELECT id, cmd, host_id, timestamp, exit_code
+`
+
+	condition := func(key string) string {
+		if len(args) == 0 {
+			return fmt.Sprintf("WHERE %s = ?\n", key)
+		}
+		return fmt.Sprintf("AND %s = ?\n", key)
+	}
+
+	if idStr, ok := v["id"]; ok {
 		id, err := strconv.Atoi(idStr[0])
 		if err != nil {
 			return query, args, err
 		}
-		query += `
-    WHERE id = ?
-    `
-		args = append(args, id)
+		query += condition("id")
+		args = append(args, uint64(id))
 	}
 
-	if cmd, ok := r.Form["cmd"]; ok {
-		query += `
-    WHERE cmd = ?
-    `
-		args = append(args, cmd)
+	if cmd, ok := v["cmd"]; ok {
+		query += condition("cmd")
+		args = append(args, cmd[0])
 	}
 
-	if username, ok := r.Form["username"]; ok {
-		query += `
-    WHERE username = ?
-    `
-		args = append(args, username)
+	if username, ok := v["username"]; ok {
+		query += condition("username")
+		args = append(args, username[0])
 	}
 
-	if hostID, ok := r.Form["host_id"]; ok {
-		query += `
-    WHERE host_id = ?
-    `
-		args = append(args, hostID)
+	if hostID, ok := v["host_id"]; ok {
+		id, err := strconv.Atoi(hostID[0])
+		if err != nil {
+			return query, args, err
+		}
+		query += condition("host_id")
+		args = append(args, uint64(id))
 	}
 
-	if exitCode, ok := r.Form["exit_code"]; ok {
-		query += `
-    WHERE exit_code = ?
-    `
-		args = append(args, exitCode)
+	if exitCode, ok := v["exit_code"]; ok {
+		query += condition("exit_code")
+		args = append(args, exitCode[0])
 	}
 	query += ";"
 	return query, args, nil
